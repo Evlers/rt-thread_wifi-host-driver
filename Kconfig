@@ -2,6 +2,8 @@ menuconfig RT_USING_WHD
     bool "Using Wifi-Host-Driver(WHD)"
     select RT_USING_WIFI
     select RT_USING_SAL
+    select RT_USING_SDIO
+    select BSP_USING_SDIO
     default n
 
     if RT_USING_WHD
