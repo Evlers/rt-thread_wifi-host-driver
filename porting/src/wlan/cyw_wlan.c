@@ -11,9 +11,6 @@
 #include "rtthread.h"
 #include "rtdevice.h"
 
-#include "lwip/pbuf.h"
-#include "netdev.h"
-
 #include "cybsp.h"
 #include "cyhal_sdio.h"
 
@@ -170,10 +167,6 @@ static rt_err_t drv_wlan_softap(struct rt_wlan_device *wlan, struct rt_ap_info *
 {
     rt_err_t ret;
 
-    /* You need to disable the dhcp function of the netdev */
-    struct netdev *netdev = netdev_get_by_name("w1");
-    netdev_dhcp_enabled(netdev, RT_FALSE);
-
     ret = whd_wifi_init_ap(get_drv_wifi(wlan)->whd_itf,
                             (whd_ssid_t*)&ap_info->ssid,
                             (whd_security_t)ap_info->security, 
@@ -210,7 +203,11 @@ static rt_err_t drv_wlan_disconnect(struct rt_wlan_device *wlan)
 
 static rt_err_t drv_wlan_ap_stop(struct rt_wlan_device *wlan)
 {
-    return whd_wifi_stop_ap(get_drv_wifi(wlan)->whd_itf);
+    if (whd_wifi_stop_ap(get_drv_wifi(wlan)->whd_itf) == WHD_SUCCESS)
+    {
+        rt_wlan_dev_indicate_event_handle(wifi_ap.wlan, RT_WLAN_DEV_EVT_AP_STOP, 0);
+    }
+    return RT_EOK;
 }
 
 static rt_err_t drv_wlan_ap_deauth(struct rt_wlan_device *wlan, rt_uint8_t mac[])
