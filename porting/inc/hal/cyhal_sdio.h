@@ -93,46 +93,6 @@ extern "C" {
 
 /** \} group_hal_sdio_macros */
 
-/* Configure the sdio clock frequency */
-
-#define SDIO_CLOCK_FREQ_CONFIG              (0)
-
-#if SDIO_CLOCK_FREQ_CONFIG
-// This bit determines the direction of the I/O operation. If this bit is 0, this command shall read
-// data from the SDIO
-#define SDIO_CMD52_ARG_RW_READ              (0)
-#define SDIO_CMD52_ARG_RW_WRITE             (1)
-// The Read after Write flag. If this bit is set to 1 and the R/W flag is set to 1, then the command
-// shall read the value of the register after the write
-#define SDIO_CMD52_ARG_RAW_NOT_SET          (0)
-#define SDIO_CMD52_ARG_RAW_SET              (1)
-// The number of the function within the I/O card you wish to read or write. Function 0 selects the
-// common I/O area (CIA)
-#define SDIO_FUNC_NUM_0                     (0)
-
-// Per SDIO Specification -Card Common Control Registers (CCCR)
-
-// Bus Speed Select register
-#define SDIO_CMD52_CCCR_SPEED_SLCT_ADDR     (0x00013)
-// Select High Speed by setting BSS0 bit
-#define SDIO_CMD52_CCCR_SPEED_SLCT_HS       (0x2)
-
-// Per SDIO specification - IO_RW_DIRECT Response (R5)
-
-// | Start | Dir | CMD Index | Stuff | Response Flags Bit | Read or Write Data | CRC7 | End |
-// ------------------------------------------------------------------------------------------
-// |   1   |  1  |     6     |  16   |          8         |         8          |  7   |  1  |
-
-// Expected response for High Speed support check command
-//                                   | CMD=DAT lines free | High-Speed support |
-//                                   |     00010000b      |     00000001b      |
-#define SDIO_CMD52_CCCR_SPEED_SELECT_RESP_HS_SUPPORTED  (0x00001001)
-// Expected response for High Speed support check command
-//                                   | CMD=DAT lines free | HS/SDR25 activated |
-//                                   |     00010000b      |     00000010b      |
-#define SDIO_CMD52_CCCR_SPEED_SELECT_RESP_HS_SELECTED   (0x00001002)
-
-#endif /* SDIO_CLOCK_FREQ_CONFIG */
 
 /**
  * \addtogroup group_hal_sdio_enums
@@ -209,12 +169,6 @@ typedef void (*cyhal_sdio_irq_handler_t)(void *handler_arg, cyhal_sdio_irq_event
 /** Initialize the SDIO peripheral
  *
  * @param[out] obj               The SDIO object
- * @param[out] clk               The pin connected to the clk signal
- * @param[in]  cmd               The pin connected to the command signal
- * @param[in]  data0             The pin connected to the data0 signal
- * @param[in]  data1             The pin connected to the data1 signal
- * @param[in]  data2             The pin connected to the data2 signal
- * @param[in]  data3             The pin connected to the data3 signal
  * @return The status of the init request
  */
 cy_rslt_t cyhal_sdio_init(cyhal_sdio_t *obj);

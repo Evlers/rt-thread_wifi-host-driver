@@ -269,51 +269,6 @@ static rt_int32_t wlan_probe(struct rt_mmcsd_card *card)
     /* save mmcsd card */
     tmp_cyhal_sdio->card = card;
 
-#if SDIO_CLOCK_FREQ_CONFIG
-    uint32_t response = 0;
-    uint32_t sdio_frequency = card->host->freq_min;
-
-    mmcsd_host_lock(card->host);
-
-    // mmcsd_set_clock(card->host, sdio_frequency);
-
-    mmcsd_select_card(card);
-    
-    uint32_t tmp_arg = _cybsp_wifi_create_cmd_52_arg(SDIO_CMD52_ARG_RW_READ, SDIO_FUNC_NUM_0,
-                                                        SDIO_CMD52_ARG_RAW_NOT_SET,
-                                                        SDIO_CMD52_CCCR_SPEED_SLCT_ADDR, 0x00);
-    result = cyhal_sdio_send_cmd(tmp_cyhal_sdio, CYHAL_READ, CYHAL_SDIO_CMD_IO_RW_DIRECT, tmp_arg, &response);
-    if (result == CYHAL_SDIO_RET_NO_ERRORS)
-    {
-        if (SDIO_CMD52_CCCR_SPEED_SELECT_RESP_HS_SUPPORTED == response)
-        {
-            tmp_arg = _cybsp_wifi_create_cmd_52_arg(SDIO_CMD52_ARG_RW_WRITE, SDIO_FUNC_NUM_0,
-                                                    SDIO_CMD52_ARG_RAW_NOT_SET,
-                                                    SDIO_CMD52_CCCR_SPEED_SLCT_ADDR,
-                                                    SDIO_CMD52_CCCR_SPEED_SLCT_HS);
-            result = cyhal_sdio_send_cmd(tmp_cyhal_sdio, CYHAL_WRITE, CYHAL_SDIO_CMD_IO_RW_DIRECT, tmp_arg, &response);
-
-            if (result == CYHAL_SDIO_RET_NO_ERRORS)
-            {
-                if (SDIO_CMD52_CCCR_SPEED_SELECT_RESP_HS_SELECTED == response)
-                {
-                    // High Speed mode switch allowed, configure clock frequency for sdio max frequency
-                    sdio_frequency = card->host->freq_max;
-                }
-            }
-        }
-    }
-
-    mmcsd_host_unlock(card->host);
-
-    if (result == CYHAL_SDIO_RET_NO_ERRORS)
-    {
-        cyhal_sdio_cfg_t config = { .frequencyhal_hz = sdio_frequency, .block_size = 0 };
-        result = cyhal_sdio_configure(tmp_cyhal_sdio, &config);
-    }
-
-#endif
-
     return result;
 }
 
