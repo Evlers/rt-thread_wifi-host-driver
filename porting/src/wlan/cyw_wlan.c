@@ -42,6 +42,14 @@ extern whd_resource_source_t resource_ops;
 extern struct whd_buffer_funcs whd_buffer_ops;
 
 
+struct whd_scan
+{
+    struct rt_wlan_device *wlan;
+    whd_scan_result_t scan_result;
+    whd_scan_type_t whd_scan_type;
+    rt_sem_t active_sem;
+};
+
 struct drv_wifi
 {
     struct rt_wlan_device *wlan;
@@ -78,11 +86,10 @@ static rt_err_t drv_wlan_mode(struct rt_wlan_device *wlan, rt_wlan_mode_t mode)
     return RT_EOK;
 }
 
-whd_scan_result_t scan_result;
-
 static void whd_scan_callback(whd_scan_result_t **result_ptr, void *user_data, whd_scan_status_t status)
-{   
-    struct rt_wlan_device *wlan = user_data;
+{
+    struct whd_scan *whd_scan = user_data;
+    struct rt_wlan_device *wlan = whd_scan->wlan;
 
     /* Check if we don't have a scan result to send to the user */
     if (( result_ptr == NULL ) || ( *result_ptr == NULL ))
@@ -90,8 +97,21 @@ static void whd_scan_callback(whd_scan_result_t **result_ptr, void *user_data, w
         /* Check for scan complete */
         if (status == WHD_SCAN_COMPLETED_SUCCESSFULLY || status == WHD_SCAN_ABORTED)
         {
-            LOG_D("scan complete!");
-            rt_wlan_dev_indicate_event_handle(wlan, RT_WLAN_DEV_EVT_SCAN_DONE, RT_NULL);
+            if (whd_scan->whd_scan_type == WHD_SCAN_TYPE_ACTIVE)
+            {
+                /* The active type scan is complete, and the wlan is now signaled to perform a passive type scan */
+                whd_scan->whd_scan_type = WHD_SCAN_TYPE_PASSIVE;
+                memset(&whd_scan->scan_result, 0, sizeof(whd_scan->scan_result));
+                rt_sem_release(whd_scan->active_sem);
+            }
+            else
+            {
+                /* The passive type scanning is complete. The scanning is complete */
+                LOG_D("scan complete!");
+                rt_wlan_dev_indicate_event_handle(wlan, RT_WLAN_DEV_EVT_SCAN_DONE, RT_NULL);
+                rt_sem_delete(whd_scan->active_sem);
+                rt_free(whd_scan);
+            }
         }
         return;
     }
@@ -137,8 +157,29 @@ static void whd_scan_callback(whd_scan_result_t **result_ptr, void *user_data, w
 
 static rt_err_t drv_wlan_scan(struct rt_wlan_device *wlan, struct rt_scan_info *scan_info)
 {
-    return whd_wifi_scan(get_drv_wifi(wlan)->whd_itf, WHD_SCAN_TYPE_ACTIVE, WHD_BSS_TYPE_ANY,
-                            NULL, NULL, NULL, NULL, whd_scan_callback, &scan_result, wlan);
+    struct whd_scan *whd_scan = rt_malloc(sizeof(struct whd_scan));
+
+    /* Let the module scan with the active type first, and then scan the nearby ap with the passive type */
+
+    RT_ASSERT(whd_scan != NULL);
+    whd_scan->wlan = wlan;
+    whd_scan->whd_scan_type = WHD_SCAN_TYPE_ACTIVE;
+    whd_scan->active_sem = rt_sem_create("whd scan", 0, RT_IPC_FLAG_PRIO);
+    RT_ASSERT(whd_scan->active_sem != NULL);
+
+    /* Execute an active type scan */
+    if (whd_wifi_scan(get_drv_wifi(wlan)->whd_itf, whd_scan->whd_scan_type, WHD_BSS_TYPE_ANY,
+                            NULL, NULL, NULL, NULL, whd_scan_callback, &whd_scan->scan_result, whd_scan) != WHD_SUCCESS)
+    {
+        return RT_EOK;
+    }
+
+    /* Wait until the active scan is complete */
+    rt_sem_take(whd_scan->active_sem, rt_tick_from_millisecond(10000));
+
+    /* Execute an active type scan */
+    return whd_wifi_scan(get_drv_wifi(wlan)->whd_itf, whd_scan->whd_scan_type, WHD_BSS_TYPE_ANY,
+                            NULL, NULL, NULL, NULL, whd_scan_callback, &whd_scan->scan_result, whd_scan);
 }
 
 static rt_err_t drv_wlan_join(struct rt_wlan_device *wlan, struct rt_sta_info *sta_info)
@@ -151,11 +192,7 @@ static rt_err_t drv_wlan_join(struct rt_wlan_device *wlan, struct rt_sta_info *s
     ret = whd_wifi_join(get_drv_wifi(wlan)->whd_itf, &whd_ssid, WHD_SECURITY_WPA2_AES_PSK, 
                             (const uint8_t *)sta_info->key.val, sta_info->key.len);
 
-    if (ret == WHD_SUCCESS)
-    {
-        rt_wlan_dev_indicate_event_handle(wlan, RT_WLAN_DEV_EVT_CONNECT, RT_NULL);
-    }
-    else
+    if (ret != WHD_SUCCESS)
     {
         rt_wlan_dev_indicate_event_handle(wlan, RT_WLAN_DEV_EVT_CONNECT_FAIL, RT_NULL);
     }
@@ -438,6 +475,48 @@ static whd_netif_funcs_t netif_if_ops =
     .whd_network_process_ethernet_data = cy_network_process_ethernet_data,
 };
 
+/**
+ * Event handler prototype definition
+ *
+ * @param[out] whd_event_header_t : whd event header
+ * @param[out] uint8_t*           : event data
+ * @param[out] handler_user_data  : semaphore data
+ */
+void *whd_event_handler(whd_interface_t ifp, const whd_event_header_t *event_header, const uint8_t *event_data, void *user_data)
+{
+    struct drv_wifi *wifi = (struct drv_wifi *)user_data;
+
+    LOG_D("whd_event_handler, event_type: %u", event_header->event_type);
+
+    switch (event_header->event_type)
+    {
+        case WLC_E_ASSOC:
+        case WLC_E_REASSOC:
+            LOG_D("Connected.");
+            rt_wlan_dev_indicate_event_handle(wifi->wlan, RT_WLAN_DEV_EVT_CONNECT, RT_NULL);
+        break;
+        
+        case WLC_E_LINK:
+            if (event_header->reason != 0)
+            {
+                LOG_D("Disconnected, reason: %u", event_header->reason);
+                rt_wlan_dev_indicate_event_handle(wifi->wlan, RT_WLAN_DEV_EVT_DISCONNECT, RT_NULL);
+            }
+        break;
+    }
+
+    return user_data;
+}
+
+static void register_whd_events (void)
+{
+    uint16_t event_index = 0;
+    uint32_t event_list[] = { WLC_E_ASSOC, WLC_E_REASSOC, WLC_E_LINK, WLC_E_NONE };
+    if (whd_wifi_set_event_handler(wifi_sta.whd_itf, event_list, whd_event_handler, &wifi_sta, &event_index) != WHD_SUCCESS)
+    {
+        LOG_W("Failed to register the whd event");
+    }
+}
 
 static int rt_hw_wifi_init(void)
 {
@@ -539,6 +618,8 @@ static int rt_hw_wifi_init(void)
         return -RT_ERROR;
     }
 
+    /* Registers a handler to receive whd event callbacks. */
+    register_whd_events();
 
     /* Register the wlan device and set its working mode */
 
