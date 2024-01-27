@@ -653,4 +653,4 @@ static int rt_hw_wifi_init(void)
 
     return ret;
 }
-INIT_APP_EXPORT(rt_hw_wifi_init);
+INIT_ENV_EXPORT(rt_hw_wifi_init);
