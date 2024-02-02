@@ -21,8 +21,9 @@ menu "External Libraries"
 endmenu
 ```
 **Note:**<br>
-sdio driver needs to support byte transfer. In the bsp of RT-Thread, most chips do not have the function of adapting byte transfer. <br>
-Please modify the `drv_sdio.c` file according to the following example: <br>
+sdio driver needs to support stream transfer. In the bsp of RT-Thread, most chips do not have the function of adapting stream transfer. <br>
+The `Cortex-M4` core also requires software to compute `CRC16` and send it after the data.<br>
+For the `Cortex-M7` core, modify the "drv_sdio.c" file as shown in the following example: <br>
 ```c
 /* The example is an sdio driver for the STM32H750 */
 SCB_CleanInvalidateDCache();
@@ -38,6 +39,59 @@ hw_sdio->dctrl = (get_order(data->blksize)<<4) |
 hw_sdio->idmabase0r = (rt_uint32_t)sdio->cache_buf;
 hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
 ```
+
+### Menuconfig
+```
+--- Using Wifi-Host-Driver(WHD)
+      Select Chips (CYWL6208(cyw43438))  --->           # Select the corresponding module chip
+[*]   Use resources in external storage(FAL)  --->      # Use the FAL component to load the resource
+[ ]   Default enable powersave mode                     # The low power mode is selected by default
+(8)   The priority level value of WHD thread            # Configure the priority of the WHD thread
+(5120) The stack size for WHD thread                    # Configure the stack size of the WHD thread
+(49)  Set the WiFi_REG ON pin                           # Set the WiFi_REG ON pin of the module
+(37)  Set the HOST_WAKE_IRQ pin                         # Set the HOST_WAKE_IRQ pin of the module
+      Select HOST_WAKE_IRQ event type (falling)  --->   # Select the edge of Wake up host
+(2)   Set the interrput priority for HOST_WAKE_IRQ pin  # Set the external interrupt priority
+```
+
+### Resource download
+You can download resource files in ymodem mode. The resource files use the FAL component.<br>
+The resource download function depends on the ymodem components.<br>
+Make sure that `RT_USING_RYM` and `WHD_RESOURCES_IN_EXTERNAL_STORAGE` definitions are turned on.
+- Run the "whd_resources_download" command on the terminal to download the resources.
+- This command requires you to enter the partition name of the resource file.
+- For example resource download(Use the default partition name, Enter your own partition name):
+```shell
+# For example, my partition configuration
+/* partition table */
+/*      magic_word          partition name      flash name          offset          size            reserved        */
+#define FAL_PART_TABLE                                                                                              \
+{                                                                                                                   \
+    { FAL_PART_MAGIC_WORD,  "whd_firmware",     "onchip_flash",     0,              448 * 1024,         0 },        \
+    { FAL_PART_MAGIC_WORD,  "whd_clm",          "onchip_flash",     448 * 1024,     32 * 1024,          0 },        \
+    { FAL_PART_MAGIC_WORD,  "easyflash",        "onchip_flash",     480 * 1024,     32 * 1024,          0 },        \
+    { FAL_PART_MAGIC_WORD,  "filesystem",       "onchip_flash",     512 * 1024,     512 * 1024,         0 },        \
+}
+
+# Download firmware files
+whd_resources_download whd_firmware
+
+# Download clm files
+whd_resources_download whd_clm
+```
+- The ymodem tool can use xshell, after completing the command input, wait for xshell to initiate the file transfer.
+```
+msh >whd_resources_download whd_firmware
+Please select the whd_firmware file and use Ymodem to send.
+```
+- At this point, right-click the mouse in xshell and select "file transfer" to "using ymodem send".
+- In the `resources(wifi-host-driver/WiFi_Host_Driver/resources)` directory of `whd`, select the resource file for the corresponding chip.
+- After the transmission is complete, msh will output the following log.
+```
+Download whd_firmware to flash success. file size: 419799
+```
+- After downloading the firmware and clm resource files, reset and restart.
+
 
 
 ### Supported Chip
