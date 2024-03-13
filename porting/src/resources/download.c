@@ -8,6 +8,7 @@
  * 2024-01-27   Evlers      first implementation
  */
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -67,13 +68,13 @@ static enum rym_code ymodem_on_data (struct rym_ctx *ctx, rt_uint8_t *buf, rt_si
     return RYM_CODE_ACK;
 }
 
-static void whd_resources_download (int argc, char **argv)
+static void whd_res_download (int argc, char **argv)
 {
     struct rym_ctx rctx;
 
     if (argc < 2)
     {
-        rt_kprintf("Using: whd_resources_download <partition name>\n");
+        rt_kprintf("Using: whd_res_download <fal partition name>\n");
         return ;
     }
 
@@ -116,6 +117,6 @@ static void whd_resources_download (int argc, char **argv)
         rt_kprintf("\nDownload %s resource file failed!\n", argv[1]);
     }
 }
-MSH_CMD_EXPORT(whd_resources_download, Download WiFi resource files);
+MSH_CMD_EXPORT(whd_res_download, Download wifi-host-driver resource files);
 
 #endif /* defined(WHD_RESOURCES_IN_EXTERNAL_STORAGE) && defined(RT_USING_RYM) */

@@ -58,7 +58,7 @@ hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
 You can download resource files in ymodem mode. The resource files use the FAL component.<br>
 The resource download function depends on the ymodem components.<br>
 Make sure that `RT_USING_RYM` and `WHD_RESOURCES_IN_EXTERNAL_STORAGE` definitions are turned on.
-- Run the "whd_resources_download" command on the terminal to download the resources.
+- Run the "whd_res_download" command on the terminal to download the resources.
 - This command requires you to enter the partition name of the resource file.
 - For example resource download(Use the default partition name, Enter your own partition name):
 ```shell
@@ -74,14 +74,14 @@ Make sure that `RT_USING_RYM` and `WHD_RESOURCES_IN_EXTERNAL_STORAGE` definition
 }
 
 # Download firmware files
-whd_resources_download whd_firmware
+whd_res_download whd_firmware
 
 # Download clm files
-whd_resources_download whd_clm
+whd_res_download whd_clm
 ```
 - The ymodem tool can use xshell, after completing the command input, wait for xshell to initiate the file transfer.
 ```
-msh >whd_resources_download whd_firmware
+msh >whd_res_download whd_firmware
 Please select the whd_firmware file and use Ymodem to send.
 ```
 - At this point, right-click the mouse in xshell and select "file transfer" to "using ymodem send".
