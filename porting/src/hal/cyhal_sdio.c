@@ -12,7 +12,6 @@
 #include "cyhal_sdio.h"
 #include <rtdevice.h>
 #include "whd_bus_sdio_protocol.h"
-#include "drv_gpio.h"
 
 
 static rt_int32_t wlan_probe(struct rt_mmcsd_card *card);
@@ -172,7 +171,7 @@ cy_rslt_t cyhal_sdio_bulk_transfer(cyhal_sdio_t *obj, cyhal_transfer_t direction
 
     mmcsd_data.buf = (rt_uint32_t *)data;
     mmcsd_data.flags = (direction == CYHAL_READ) ? DATA_DIR_READ : DATA_DIR_WRITE;
-    
+
     uint32_t max_blk_size = obj->card->sdio_function[obj->dev_id->func_code]->cur_blk_size;
     max_blk_size = max_blk_size ? max_blk_size : obj->card->sdio_function[obj->dev_id->func_code]->max_blk_size;
     if (length >= max_blk_size)
@@ -249,23 +248,10 @@ void cyhal_sdio_irq_enable(cyhal_sdio_t *obj, cyhal_sdio_irq_event_t event, bool
     mmcsd_host_unlock(obj->card->host);
 }
 
-
-#if SDIO_CLOCK_FREQ_CONFIG
-static uint32_t _cybsp_wifi_create_cmd_52_arg(uint8_t rw, uint8_t func, uint8_t raw, uint32_t addr,
-                                              uint8_t data)
-{
-    return (((rw & 0x01) << 31)         /* set R/W flag */
-            | ((func & 0x07) << 28)     /* set the function number */
-            | ((raw & 0x01) << 27)      /* set the RAW flag */
-            | ((addr & 0x1FFFF) << 9)   /* set the address */
-            | data);                    /* set the data */
-}
-#endif
-
 static rt_int32_t wlan_probe(struct rt_mmcsd_card *card)
 {
     cy_rslt_t result = CYHAL_SDIO_RET_NO_ERRORS;
-    
+
     /* save mmcsd card */
     tmp_cyhal_sdio->card = card;
 

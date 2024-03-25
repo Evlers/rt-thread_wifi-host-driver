@@ -217,5 +217,4 @@ void cyhal_gpio_irq_enable(cyhal_gpio_t pin, cyhal_gpio_irq_event_t event, bool 
         rt_pin_irq_enable(pin, RT_FALSE);
         rt_pin_detach_irq(pin);
     }
-    
 }

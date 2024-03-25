@@ -26,7 +26,7 @@ static const struct fal_partition *download_part = RT_NULL;
 
 static enum rym_code ymodem_on_begin (struct rym_ctx *ctx, rt_uint8_t *buf, rt_size_t len)
 {
-    char *file_name, *file_size;    
+    char *file_name, *file_size;
 
     /* calculate and store file size */
     file_name = (char *)&buf[0];

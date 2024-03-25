@@ -24,8 +24,6 @@
 #include "whd_network_types.h"
 #include "wiced_resource.h"
 
-#include "drv_gpio.h"
-
 #define DBG_TAG           "whd.wlan"
 #define DBG_LVL           DBG_INFO
 #include "rtdbg.h"
