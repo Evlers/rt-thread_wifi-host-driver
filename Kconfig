@@ -99,6 +99,10 @@ menuconfig RT_USING_WHD
         config CYBSP_OOB_INTR_PRIORITY
             int "Set the interrput priority for HOST_WAKE_IRQ pin"
             default 2
+
+        config CY_WIFI_MMCSD_WAIT_TIME
+            int "Set the waiting time for mmcsd card scanning"
+            default 500
         
     endif
 

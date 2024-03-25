@@ -6,6 +6,7 @@
  * Change Logs:
  * Date         Author      Notes
  * 2023-12-28   Evlers      first implementation
+ * 2024-03-25   Evlers      add configure the mmcsd card scanning wait time
  */
 
 #include "rtthread.h"
@@ -24,7 +25,7 @@
 
 #include "drv_gpio.h"
 
-#define DBG_TAG           "cyw.wlan"
+#define DBG_TAG           "whd.wlan"
 #define DBG_LVL           DBG_INFO
 #include "rtdbg.h"
 
@@ -67,7 +68,7 @@ rt_inline struct drv_wifi *get_drv_wifi(struct rt_wlan_device *wlan)
     {
         return &wifi_sta;
     }
-    
+
     if (wlan == wifi_ap.wlan)
     {
         return &wifi_ap;
@@ -189,7 +190,7 @@ static rt_err_t drv_wlan_join(struct rt_wlan_device *wlan, struct rt_sta_info *s
 
     memcpy(whd_ssid.value, sta_info->ssid.val, whd_ssid.length);
 
-    ret = whd_wifi_join(get_drv_wifi(wlan)->whd_itf, &whd_ssid, WHD_SECURITY_WPA2_AES_PSK, 
+    ret = whd_wifi_join(get_drv_wifi(wlan)->whd_itf, &whd_ssid, WHD_SECURITY_WPA2_AES_PSK,
                             (const uint8_t *)sta_info->key.val, sta_info->key.len);
 
     if (ret != WHD_SUCCESS)
@@ -206,10 +207,10 @@ static rt_err_t drv_wlan_softap(struct rt_wlan_device *wlan, struct rt_ap_info *
 
     ret = whd_wifi_init_ap(get_drv_wifi(wlan)->whd_itf,
                             (whd_ssid_t*)&ap_info->ssid,
-                            (whd_security_t)ap_info->security, 
+                            (whd_security_t)ap_info->security,
                             (const uint8_t *) ap_info->key.val,
                             ap_info->key.len, ap_info->channel);
-    
+
     if (ret != WHD_SUCCESS)
     {
         return ret;
@@ -495,7 +496,7 @@ void *whd_event_handler(whd_interface_t ifp, const whd_event_header_t *event_hea
             LOG_D("Connected.");
             rt_wlan_dev_indicate_event_handle(wifi->wlan, RT_WLAN_DEV_EVT_CONNECT, RT_NULL);
         break;
-        
+
         case WLC_E_LINK:
             if (event_header->reason != 0)
             {
@@ -543,7 +544,7 @@ static int rt_hw_wifi_init(void)
     /* Initialize WiFi Host Drivers (WHD) */
 
     /* Wait for the mmcsd to finish reading the card */
-    rt_thread_mdelay(200);
+    rt_thread_mdelay(CY_WIFI_MMCSD_WAIT_TIME);
 
     /* Register the sdio driver */
     if (cyhal_sdio_init(&cyhal_sdio) != CYHAL_SDIO_RET_NO_ERRORS)
@@ -606,7 +607,7 @@ static int rt_hw_wifi_init(void)
             LOG_E("Failed to enable the powersave mode!");
             return ret;
         }
-        
+
         LOG_D("Enables powersave mode while attempting to maximise throughput.");
     }
 #endif
@@ -636,7 +637,7 @@ static int rt_hw_wifi_init(void)
         LOG_E("Failed to register a wlan_sta device!");
         return ret;
     }
-    
+
     /* Set wlan_sta to STATION mode */
     if ((ret = rt_wlan_set_mode(RT_WLAN_DEVICE_STA_NAME, RT_WLAN_STATION)) != RT_EOK)
     {
