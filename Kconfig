@@ -100,10 +100,21 @@ menuconfig RT_USING_WHD
             int "Set the interrput priority for HOST_WAKE_IRQ pin"
             default 2
 
+        config CY_WIFI_USING_THREAD_INIT
+            bool "Using thread initialization"
+            default n
+
+        if CY_WIFI_USING_THREAD_INIT
+            config CY_WIFI_INIT_THREAD_STACK_SIZE
+                int "The stack size for init thread"
+                range 0 8192
+                default 2048
+        endif
+
         config CY_WIFI_MMCSD_WAIT_TIME
             int "Set the waiting time for mmcsd card scanning"
             default 500
-        
+
     endif
 
     
