@@ -55,7 +55,7 @@ hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
       Select HOST_WAKE_IRQ event type (falling)  --->   # Select the edge of Wake up host
 (2)   Set the interrput priority for HOST_WAKE_IRQ pin  # Set the external interrupt priority
 [ ]   Using thread initialization                       # Create a thread to initialize the driver
-(500) Set the waiting time for mmcsd card scanning      # Set the waiting time for the mmcsd driver to scan cards
+(500) Set the waiting time for mmcsd card scanning      # Set the waiting time for the scan cards
 ```
 
 ### Resource download
