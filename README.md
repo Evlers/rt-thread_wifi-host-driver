@@ -1,5 +1,7 @@
 ## RT-Thread Wi-Fi Host Driver (WHD)
 
+[中文](./README_CN.md)
+
 ### Overview
 The WHD is an independent, embedded Wi-Fi Host Driver that provides a set of APIs to interact with Infineon WLAN chips. The WHD is an independent firmware product that is easily portable to any embedded software environment, including popular IoT frameworks such as Mbed OS and Amazon FreeRTOS. Therefore, the WHD includes hooks for RTOS and TCP/IP network abstraction layers.
 
@@ -22,7 +24,7 @@ endmenu
 ```
 **Note:**<br>
 sdio driver needs to support stream transfer. In the bsp of RT-Thread, most chips do not have the function of adapting stream transfer. <br>
-The `Cortex-M4` core also requires software to compute `CRC16` and send it after the data.<br>
+The `Cortex-M4` core also requires software to compute `CRC16` and send it after the data, reference [stream transmission solution](http://t.csdnimg.cn/pL1KD).<br>
 For the `Cortex-M7` core, modify the "drv_sdio.c" file as shown in the following example: <br>
 ```c
 /* The example is an sdio driver for the STM32H750 */
@@ -52,6 +54,8 @@ hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
 (37)  Set the HOST_WAKE_IRQ pin                         # Set the HOST_WAKE_IRQ pin of the module
       Select HOST_WAKE_IRQ event type (falling)  --->   # Select the edge of Wake up host
 (2)   Set the interrput priority for HOST_WAKE_IRQ pin  # Set the external interrupt priority
+[ ]   Using thread initialization                       # Create a thread to initialize the driver
+(500) Set the waiting time for mmcsd card scanning      # Set the waiting time for the mmcsd driver to scan cards
 ```
 
 ### Resource download
