@@ -559,6 +559,8 @@ static void whd_init_thread (void *parameter)
 
 
     /* Initialize WiFi Host Drivers (WHD) */
+    rt_kprintf("RT-Thread WiFi Host Drivers (WHD)\n");
+    rt_kprintf("You can get the latest version on https://github.com/Evlers/rt-thread_wifi-host-driver\n");
 
     /* Wait for the mmcsd to finish reading the card */
     rt_thread_mdelay(CY_WIFI_MMCSD_WAIT_TIME);
