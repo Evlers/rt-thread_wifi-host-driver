@@ -7,6 +7,7 @@
  * Change Logs:
  * Date         Author      Notes
  * 2023-12-21   Evlers      first implementation
+ * 2024-05-17   Evlers      change the block transfer size to a fixed 64 bytes
  */
 
 #include "cyhal_sdio.h"
@@ -172,12 +173,10 @@ cy_rslt_t cyhal_sdio_bulk_transfer(cyhal_sdio_t *obj, cyhal_transfer_t direction
     mmcsd_data.buf = (rt_uint32_t *)data;
     mmcsd_data.flags = (direction == CYHAL_READ) ? DATA_DIR_READ : DATA_DIR_WRITE;
 
-    uint32_t max_blk_size = obj->card->sdio_function[obj->dev_id->func_code]->cur_blk_size;
-    max_blk_size = max_blk_size ? max_blk_size : obj->card->sdio_function[obj->dev_id->func_code]->max_blk_size;
-    if (length >= max_blk_size)
+    if ((*arg).cmd53.block_mode)
     {
         /* Block mode */
-        mmcsd_data.blksize = max_blk_size;
+        mmcsd_data.blksize = SDIO_64B_BLOCK; /* WHD is uniformly adopts 64-byte block transmission */
         mmcsd_data.blks = (length + mmcsd_data.blksize - 1u) / mmcsd_data.blksize;
     }
     else
@@ -186,7 +185,6 @@ cy_rslt_t cyhal_sdio_bulk_transfer(cyhal_sdio_t *obj, cyhal_transfer_t direction
         mmcsd_data.blksize = length;
         mmcsd_data.blks = 1;
         mmcsd_data.flags |= DATA_STREAM;
-        (*arg).cmd53.block_mode = 0;
     }
 
     mmcsd_host_lock(obj->card->host);
