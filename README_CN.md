@@ -24,7 +24,7 @@ endmenu
 ```
 **注意:**<br>
 SDIO驱动需要支持数据流传输，在RT-Thread的bsp中，大多数芯片都未适配数据流传输的功能。<br>
-`Cortex-M4`内核需要软件来计算`CRC16`并在数据后面发送它，参考 [字节流传输解决方案](http://t.csdnimg.cn/pL1KD)。<br>
+`Cortex-M4`内核需要软件来计算`CRC16`并在数据后面发送它，参考 [字节流传输解决方案](./docs/SDIO数据流传输.md)。<br>
 对于`Cortex-M7`内核，只需要修改`drv_sdio.c`文件的一处地方即可，示例如下: <br>
 ```c
 /* 该示例是STM32H750的SDIO驱动程序 */
@@ -114,3 +114,10 @@ Download whd_firmware to flash success. file size: 419799
 * [Wi-Fi Host Driver API Reference Manual and Porting Guide](https://infineon.github.io/wifi-host-driver/html/index.html)
 * [Wi-Fi Host Driver Release Notes](./wifi-host-driver/RELEASE.md)
 * [Infineon Technologies](http://www.infineon.com)
+
+### 联系方式&支持
+- 邮箱: 1425295900@qq.com
+- 微信：Evlers
+- 如果驱动上有什么问题欢迎提交PR或者联系我一起交流
+- 如果你觉得这个项目不错，并且能够满足您的需求，请打赏打赏我吧~ 感谢支持！！<br>
+![wechat](./docs/images/qrcode.png)

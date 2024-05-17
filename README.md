@@ -24,7 +24,7 @@ endmenu
 ```
 **Note:**<br>
 sdio driver needs to support stream transfer. In the bsp of RT-Thread, most chips do not have the function of adapting stream transfer. <br>
-The `Cortex-M4` core also requires software to compute `CRC16` and send it after the data, reference [stream transmission solution](http://t.csdnimg.cn/pL1KD).<br>
+The `Cortex-M4` core also requires software to compute `CRC16` and send it after the data, reference [stream transmission solution](./docs/SDIO数据流传输.md).<br>
 For the `Cortex-M7` core, modify the "drv_sdio.c" file as shown in the following example: <br>
 ```c
 /* The example is an sdio driver for the STM32H750 */
@@ -117,3 +117,10 @@ Download whd_firmware to flash success. file size: 419799
 * [Wi-Fi Host Driver API Reference Manual and Porting Guide](https://infineon.github.io/wifi-host-driver/html/index.html)
 * [Wi-Fi Host Driver Release Notes](./wifi-host-driver/RELEASE.md)
 * [Infineon Technologies](http://www.infineon.com)
+
+### Contact & Suppor
+- mail: 1425295900@qq.com
+- WeChat: Evlers
+- If there is any problem on the driver, welcome to submit PR or contact me to communicate with you.
+- If you think this project is good and can meet your needs, please tip me~ Thank you for your support!<br>
+![wechat](./docs/images/qrcode.png)
