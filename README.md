@@ -101,7 +101,7 @@ Download whd_firmware to flash success. file size: 419799
 | CYW4343W  |   *    |   x   |   x   |
 | CYW43438  |   o    |   x   |   x   |
 | CYW4373   |   *    |   x   |   x   |
-| CYW43012  |   *    |   x   |   x   |
+| CYW43012  |   o    |   x   |   x   |
 | CYW43439  |   *    |   x   |   x   |
 | CYW43022  |   *    |   x   |   x   |
 
