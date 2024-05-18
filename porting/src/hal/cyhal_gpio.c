@@ -24,6 +24,7 @@
  * Change Logs:
  * Date         Author      Notes
  * 2023-12-21   Evlers      first implementation
+ * 2024-05-18   Evlers      add __builtin_clz to support the gcc compiler
  */
 
 #include "cyhal_gpio.h"
@@ -36,7 +37,11 @@
 /* Return pin number by counts the number of leading zeros of a data value.
  * NOTE: __CLZ  returns  32 if no bits are set in the source register, and zero
  * if bit 31 is set. Parameter 'pin' should be in range GPIO_PIN0..GPIO_PIN15. */
+#ifdef __ARMCC_VERSION
 #define CYHAL_GET_PIN_NUMBER(pin)   (uint32_t)(31u - __clz(pin))
+#else
+#define CYHAL_GET_PIN_NUMBER(pin)   (uint32_t)(31u - __builtin_clz(pin))
+#endif
 
 typedef struct
 {
