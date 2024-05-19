@@ -13,8 +13,21 @@ Welcome everyone `PR` to support more bus interface and chips.
 
 ### Using
 
+#### Online packeage mode
+- 使用RT-Thread在线包方式加入工程代码中
+```
+# menuconfig
+RT-Thread online packages  --->
+    IoT - internet of things  --->
+        [*] Wifi-Host-Driver(WHD) for RT-Thread.  --->
+```
+
+#### Offline packeage mode(This method is not recommended after the RT-Thread online software package is submitted)
 - Clone the repository to the `packages` or `libraries` directory in the RT-Thread project.
 - Because the `wifi-host-driver` is a submodule, you will need to clone with the --recursive option.
+```shell
+git clone --recursive https://github.com/Evlers/rt-thread_wifi-host-driver
+```
 - In the `libraries` or `packages` folder in the RT-Thread project, include `Kconfig` file for `WHD` in its Kconfig files.
 - For example, include `WHD` in the `libraries` directory:
 ```Kconfig
@@ -42,7 +55,7 @@ hw_sdio->idmabase0r = (rt_uint32_t)sdio->cache_buf;
 hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
 ```
 
-### Menuconfig
+### Package configuration
 ```
 --- Using Wifi-Host-Driver(WHD)
       Select Chips (CYWL6208(cyw43438))  --->           # Select the corresponding module chip

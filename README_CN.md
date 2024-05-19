@@ -13,8 +13,21 @@ WHD是一个独立的嵌入式Wi-Fi主机驱动程序，它提供了一组与英
 
 ### 使用
 
+#### 在线包方式
+- 使用RT-Thread在线包方式加入工程代码中
+```
+# menuconfig
+RT-Thread online packages  --->
+    IoT - internet of things  --->
+        [*] Wifi-Host-Driver(WHD) for RT-Thread.  --->
+```
+
+#### 离线包方式(在提交到RT-Thread在线软件包后不推荐使用此方法)
 - 将该仓库克隆到RT-Thread项目中的`packages`或`libraries`目录。
-- 因为`wifi-host-driver`是一个子模块，所以需要使用`-recursive`选项进行克隆。
+- 因为`wifi-host-driver`是一个子模块，所以需要使用`--recursive`选项进行克隆。
+```shell
+git clone --recursive https://github.com/Evlers/rt-thread_wifi-host-driver
+```
 - 在RT-Thread项目的`libraries`或`packages`文件夹中，将`WHD`的`Kconfig`文件包含在其Kconfig文件中。
 - 例如，在`libraries`目录中包含`WHD`:
 ```Kconfig
@@ -42,7 +55,7 @@ hw_sdio->idmabase0r = (rt_uint32_t)sdio->cache_buf;
 hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
 ```
 
-### Menuconfig
+### 软件包配置
 ```
 --- Using Wifi-Host-Driver(WHD)
       Select Chips (CYWL6208(cyw43438))  --->           # 选择相应的模块/芯片

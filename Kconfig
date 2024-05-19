@@ -1,4 +1,4 @@
-menuconfig RT_USING_WHD
+menuconfig PKG_USING_WIFI_HOST_DRIVER
     bool "Using Wifi-Host-Driver(WHD)"
     select RT_USING_WIFI
     select RT_USING_SAL
@@ -6,7 +6,7 @@ menuconfig RT_USING_WHD
     select BSP_USING_SDIO
     default n
 
-    if RT_USING_WHD
+    if PKG_USING_WIFI_HOST_DRIVER
 
         choice
             prompt "Select Chips"

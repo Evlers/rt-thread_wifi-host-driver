@@ -101,6 +101,6 @@ path += [cwd + '/porting/inc/rtos']
 
 CPPDEFINES = ['']
 
-group = DefineGroup('whd', src, depend = ['RT_USING_WHD'], CPPPATH = path, CPPDEFINES = CPPDEFINES)
+group = DefineGroup('whd', src, depend = ['PKG_USING_WIFI_HOST_DRIVER'], CPPPATH = path, CPPDEFINES = CPPDEFINES)
 
 Return('group')
