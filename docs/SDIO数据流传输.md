@@ -1,8 +1,8 @@
 ## 简介
 
-在调试SDIO接口的WiFi驱动时，WiFi驱动使用到了`数据流传输`模式，在`Cortex-M4`内核中字节流传输是不完善的，在数据传输完成后外设不会发送数据的`CRC16校验`，如下图的`GD32F4xx`用户手册中可以看到，在使用`数据流传输`模式确实是不支持触发硬件CRC的传输。而在`Cortex-M7`内核是支持的，例如`STM32H750`。
+在调试SDIO接口的WiFi驱动时，WiFi驱动使用到了`数据流传输`模式，在`Cortex-M4`内核中数据流传输是不完善的，在数据传输完成后外设不会发送数据的`CRC16校验`，如下图的`GD32F4xx`用户手册中可以看到，在使用`数据流传输`模式确实是不支持触发硬件CRC的传输。而在`Cortex-M7`内核是支持的，例如`STM32H750`。
 
-![sdio_peripheral_read_write](./images/sdio_peripheral_read_write.png)
+![sdio_read_write](./images/sdio_read_write.png)
 
 ## 数据传输格式
 
