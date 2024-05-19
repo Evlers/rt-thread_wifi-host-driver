@@ -14,7 +14,6 @@ Welcome everyone `PR` to support more bus interface and chips.
 ### Using
 
 #### Online packeage mode
-- 使用RT-Thread在线包方式加入工程代码中
 ```
 # menuconfig
 RT-Thread online packages  --->

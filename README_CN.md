@@ -14,7 +14,6 @@ WHD是一个独立的嵌入式Wi-Fi主机驱动程序，它提供了一组与英
 ### 使用
 
 #### 在线包方式
-- 使用RT-Thread在线包方式加入工程代码中
 ```
 # menuconfig
 RT-Thread online packages  --->
