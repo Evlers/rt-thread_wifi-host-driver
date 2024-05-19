@@ -1,6 +1,6 @@
 ## RT-Thread Wi-Fi Host Driver (WHD)
 
-[中文](./README_CN.md)
+[中文](./README_CN.md) | English
 
 ### Overview
 The WHD is an independent, embedded Wi-Fi Host Driver that provides a set of APIs to interact with Infineon WLAN chips. The WHD is an independent firmware product that is easily portable to any embedded software environment, including popular IoT frameworks such as Mbed OS and Amazon FreeRTOS. Therefore, the WHD includes hooks for RTOS and TCP/IP network abstraction layers.
@@ -58,7 +58,7 @@ hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
 ### Package configuration
 ```
 --- Using Wifi-Host-Driver(WHD)
-      Select Chips (CYWL6208(cyw43438))  --->           # Select the corresponding module chip
+      Select Chips (CYW43438)  --->                     # Select the corresponding chip
 [*]   Use resources in external storage(FAL)  --->      # Use the FAL component to load the resource
 [ ]   Default enable powersave mode                     # The low power mode is selected by default
 (8)   The priority level value of WHD thread            # Configure the priority of the WHD thread

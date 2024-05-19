@@ -13,22 +13,22 @@ menuconfig PKG_USING_WIFI_HOST_DRIVER
             default WHD_USING_CHIP_CYW43438
 
             config WHD_USING_CHIP_CYW43438
-                bool "CYWL6208(cyw43438)"
+                bool "CYW43438"
 
             config WHD_USING_CHIP_CYW4373
-                bool "CYWL6373(cyw4373)"
+                bool "CYW4373"
 
             config WHD_USING_CHIP_CYW43012
-                bool "CYWL6312(cyw43012)"
+                bool "CYW43012"
 
             config WHD_USING_CHIP_CYW43439
-                bool "CYWL6209(cyw43439)"
+                bool "CYW43439"
 
             config WHD_USING_CHIP_CYW43022
-                bool "CYWL6322(cyw43022)"
+                bool "CYW43022"
 
             config WHD_USING_CHIP_CYW4343W
-                bool "cyw4343W"
+                bool "CYW4343W"
 
         endchoice
 
