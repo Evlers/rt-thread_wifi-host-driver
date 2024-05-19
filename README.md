@@ -13,7 +13,7 @@ Welcome everyone `PR` to support more bus interface and chips.
 
 ### Using
 
-#### Online packeage mode
+#### **Online packeage mode**
 ```
 # menuconfig
 RT-Thread online packages  --->
@@ -21,7 +21,8 @@ RT-Thread online packages  --->
         [*] Wifi-Host-Driver(WHD) for RT-Thread.  --->
 ```
 
-#### Offline packeage mode(This method is not recommended after the RT-Thread online software package is submitted)
+#### **Offline packeage mode**
+This method is not recommended after the RT-Thread online software package is submitted
 - Clone the repository to the `packages` or `libraries` directory in the RT-Thread project.
 - Because the `wifi-host-driver` is a submodule, you will need to clone with the --recursive option.
 ```shell
