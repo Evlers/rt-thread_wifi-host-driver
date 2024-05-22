@@ -214,13 +214,14 @@ cy_rslt_t cyhal_sdio_bulk_transfer(cyhal_sdio_t *obj, cyhal_transfer_t direction
     return (req.cmd->err) ? CYHAL_SDIO_RET_NO_SP_ERRORS : CYHAL_SDIO_RET_NO_ERRORS;
 }
 
+static void *cyhal_sdio_irq_handler_arg = NULL;
 static cyhal_sdio_irq_handler_t cyhal_sdio_irq_handler = NULL;
 
 static void sdio_irq_handler(struct rt_sdio_function *func)
 {
     if (cyhal_sdio_irq_handler != NULL)
     {
-        cyhal_sdio_irq_handler(func, CYHAL_SDIO_CARD_INTERRUPT);
+        cyhal_sdio_irq_handler(cyhal_sdio_irq_handler_arg, CYHAL_SDIO_CARD_INTERRUPT);
     }
 }
 
@@ -232,6 +233,7 @@ static void sdio_irq_handler(struct rt_sdio_function *func)
  */
 void cyhal_sdio_register_irq(cyhal_sdio_t *obj, cyhal_sdio_irq_handler_t handler, void *handler_arg)
 {
+    cyhal_sdio_irq_handler_arg = handler_arg;
     cyhal_sdio_irq_handler = handler;
 }
 
