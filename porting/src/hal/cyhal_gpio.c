@@ -25,13 +25,14 @@
  * Date         Author      Notes
  * 2023-12-21   Evlers      first implementation
  * 2024-05-18   Evlers      add __builtin_clz to support the gcc compiler
+ * 2024-05-22   Evlers      fix oob interrupt loss issue
  */
 
 #include "cyhal_gpio.h"
 #include <rtdevice.h>
 #include "rthw.h"
 
-
+#define CYHAL_INT_TIMEOUT           10
 #define CYHAL_MAX_EXTI_NUMBER       (16U)
 
 /* Return pin number by counts the number of leading zeros of a data value.
@@ -49,6 +50,12 @@ typedef struct
     void*                       callback_args;
     bool                        enable;
     cyhal_gpio_t                pin;
+
+    /* fix oob interrupt loss issue */
+    cyhal_gpio_irq_event_t      event;
+    rt_tick_t                   tick;
+    rt_bool_t                   last_level;
+    rt_uint32_t                 soft_int_count;
 } cyhal_gpio_event_callback_info_t;
 
 static cyhal_gpio_event_callback_info_t _exti_callbacks_info[CYHAL_MAX_EXTI_NUMBER] = { 0u };
@@ -158,6 +165,7 @@ static void gpio_interrupt(void *args)
 
         /* Call user's callback */
         info->callback(info->callback_args, event);
+        info->tick = rt_tick_get();
     }
 }
 
@@ -199,6 +207,70 @@ void cyhal_gpio_register_irq(cyhal_gpio_t pin, uint8_t intrPriority, cyhal_gpio_
     }
 }
 
+/* Notes:
+ * Normally, we need to pull the pin up and then give the falling edge to trigger the interrupt, 
+ * but the WiFi module sometimes will continue to be low, without raising the pin first, 
+ * or sometimes only raised for less than 1us time, resulting in failure to trigger external interruptions.
+ * In order to solve the problem that WiFi does not give a falling edge, 
+ * we need to regularly check whether the edge times out.
+ */
+static void timer_callback (void *parameter)
+{
+    rt_tick_t tick = rt_tick_get();
+
+    for (rt_uint8_t i = 0; i < CYHAL_MAX_EXTI_NUMBER; i ++)
+    {
+        cyhal_gpio_event_callback_info_t *info = &_exti_callbacks_info[i];
+
+        if (info->enable)
+        {
+            bool level = rt_pin_read(info->pin) ? true : false;
+            bool continuous_valid = false;
+
+            /* Check whether pin are valid continuously */
+            switch(info->event)
+            {
+            case CYHAL_GPIO_IRQ_RISE:
+                    if (info->last_level && level)
+                    {
+                        continuous_valid = true;
+                    }
+                break;
+
+            case CYHAL_GPIO_IRQ_FALL:
+                    if (!info->last_level && !level)
+                    {
+                        continuous_valid = true;
+                    }
+                break;
+
+            case CYHAL_GPIO_IRQ_BOTH:
+                    /* This double edge mode should not have this problem */
+                break;
+
+            default:
+                break;
+            }
+
+            /* Save the last level to see if it times out */
+            info->last_level = level;
+
+            if (continuous_valid)
+            {
+                rt_tick_t elapsed_time = tick - info->tick;
+
+                /* If the pin does not trigger an interrupt continuous active, the interrupt is missed */
+                if (elapsed_time >= rt_tick_from_millisecond(CYHAL_INT_TIMEOUT))
+                {
+                    /* Here the software triggers an interrupt */
+                    info->soft_int_count ++;
+                    gpio_interrupt(info);
+                }
+            }
+        }
+    }
+}
+
 /** Enable or Disable the GPIO IRQ
  *
  * @param[in] pin    The GPIO object
@@ -234,6 +306,19 @@ void cyhal_gpio_irq_enable(cyhal_gpio_t pin, cyhal_gpio_irq_event_t event, bool 
         rt_pin_attach_irq(pin, mode, gpio_interrupt, &_exti_callbacks_info[pin_number]);
         _exti_callbacks_info[pin_number].enable = true;
         rt_pin_irq_enable(pin, RT_TRUE);
+
+        /* fix oob interrupt loss issue */
+        _exti_callbacks_info[pin_number].event = event;
+        _exti_callbacks_info[pin_number].last_level = rt_pin_read(pin);
+
+        static rt_timer_t timer = NULL;
+        if (timer == NULL)
+        {
+            timer = rt_timer_create("whd_oob", timer_callback, NULL, 
+                                        rt_tick_from_millisecond(CYHAL_INT_TIMEOUT), 
+                                        RT_TIMER_FLAG_PERIODIC | RT_TIMER_FLAG_SOFT_TIMER);
+            rt_timer_start(timer);
+        }
     }
     else
     {
