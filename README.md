@@ -12,30 +12,30 @@ The repository has adapted WHD to the RT-Thread system, currently only supports 
 Welcome everyone `PR` to support more bus interface and chips.
 
 ### Using
-
-#### **Online packeage mode**
+**In the package, select `Wifi-Host-Driver(WHD) for RT-Thread`**
 ```
-# menuconfig
-RT-Thread online packages  --->
-    IoT - internet of things  --->
-        [*] Wifi-Host-Driver(WHD) for RT-Thread.  --->
+RT-Thread online packages  --->                         # Online software package
+    IoT - internet of things  --->                      # IOT menu bar
+        [*] Wifi-Host-Driver(WHD) for RT-Thread.  --->  # Select the package
 ```
 
-#### **Offline packeage mode**
-This method is not recommended after the RT-Thread online software package is submitted
-- Clone the repository to the `packages` or `libraries` directory in the RT-Thread project.
-- Because the `wifi-host-driver` is a submodule, you will need to clone with the --recursive option.
-```shell
-git clone --recursive https://github.com/Evlers/rt-thread_wifi-host-driver
+### Package configuration
 ```
-- In the `libraries` or `packages` folder in the RT-Thread project, include `Kconfig` file for `WHD` in its Kconfig files.
-- For example, include `WHD` in the `libraries` directory:
-```Kconfig
-menu "External Libraries"
-    source "$RTT_DIR/../libraries/rt-thread_wifi-host-driver/Kconfig"
-endmenu
+--- Wifi-Host-Driver(WHD) for RT-Thread
+      Select Chips (CYW43438)  --->                     # Select the corresponding chip
+[*]   Use resources in external storage(FAL)  --->      # Use the FAL component to load the resource
+[ ]   Default enable powersave mode                     # The low power mode is selected by default
+(8)   The priority level value of WHD thread            # Configure the priority of the WHD thread
+(5120) The stack size for WHD thread                    # Configure the stack size of the WHD thread
+(49)  Set the WiFi_REG ON pin                           # Set the WiFi_REG ON pin of the module
+(37)  Set the HOST_WAKE_IRQ pin                         # Set the HOST_WAKE_IRQ pin of the module
+      Select HOST_WAKE_IRQ event type (falling)  --->   # Select the edge of Wake up host
+(2)   Set the interrput priority for HOST_WAKE_IRQ pin  # Set the external interrupt priority
+[ ]   Using thread initialization                       # Create a thread to initialize the driver
+(500) Set the waiting time for mmcsd card scanning      # Set the waiting time for the scan cards
 ```
-**Note:**<br>
+
+**Note**<br>
 sdio driver needs to support stream transfer. In the bsp of RT-Thread, most chips do not have the function of adapting stream transfer. <br>
 The `Cortex-M4` core also requires software to compute `CRC16` and send it after the data, reference [stream transmission solution](./docs/SDIO数据流传输.md).<br>
 For the `Cortex-M7` core, modify the "drv_sdio.c" file as shown in the following example: <br>
@@ -53,22 +53,6 @@ hw_sdio->dctrl = (get_order(data->blksize)<<4) |
                     ((data->flags & DATA_STREAM) ? SDMMC_DCTRL_DTMODE_0 : 0);
 hw_sdio->idmabase0r = (rt_uint32_t)sdio->cache_buf;
 hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
-```
-
-### Package configuration
-```
---- Using Wifi-Host-Driver(WHD)
-      Select Chips (CYW43438)  --->                     # Select the corresponding chip
-[*]   Use resources in external storage(FAL)  --->      # Use the FAL component to load the resource
-[ ]   Default enable powersave mode                     # The low power mode is selected by default
-(8)   The priority level value of WHD thread            # Configure the priority of the WHD thread
-(5120) The stack size for WHD thread                    # Configure the stack size of the WHD thread
-(49)  Set the WiFi_REG ON pin                           # Set the WiFi_REG ON pin of the module
-(37)  Set the HOST_WAKE_IRQ pin                         # Set the HOST_WAKE_IRQ pin of the module
-      Select HOST_WAKE_IRQ event type (falling)  --->   # Select the edge of Wake up host
-(2)   Set the interrput priority for HOST_WAKE_IRQ pin  # Set the external interrupt priority
-[ ]   Using thread initialization                       # Create a thread to initialize the driver
-(500) Set the waiting time for mmcsd card scanning      # Set the waiting time for the scan cards
 ```
 
 ### Resource download

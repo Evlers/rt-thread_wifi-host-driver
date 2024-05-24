@@ -13,29 +13,30 @@ WHD是一个独立的嵌入式Wi-Fi主机驱动程序，它提供了一组与英
 
 ### 使用
 
-#### **在线包方式**
+**在软件包选中`Wifi-Host-Driver(WHD) for RT-Thread`**
 ```
-# menuconfig
-RT-Thread online packages  --->
-    IoT - internet of things  --->
-        [*] Wifi-Host-Driver(WHD) for RT-Thread.  --->
+RT-Thread online packages  --->                         # 在线软件包
+    IoT - internet of things  --->                      # IOT菜单栏中
+        [*] Wifi-Host-Driver(WHD) for RT-Thread.  --->  # 选中该软件包
 ```
 
-#### **离线包方式**
-在提交到RT-Thread在线软件包后不推荐使用此方法(因为Kconfig文件会冲突)
-- 将该仓库克隆到RT-Thread项目中的`packages`或`libraries`目录。
-- 因为`wifi-host-driver`是一个子模块，所以需要使用`--recursive`选项进行克隆。
-```shell
-git clone --recursive https://github.com/Evlers/rt-thread_wifi-host-driver
+**软件包配置**
 ```
-- 在RT-Thread项目的`libraries`或`packages`文件夹中，将`WHD`的`Kconfig`文件包含在其Kconfig文件中。
-- 例如，在`libraries`目录中包含`WHD`:
-```Kconfig
-menu "External Libraries"
-    source "$RTT_DIR/../libraries/rt-thread_wifi-host-driver/Kconfig"
-endmenu
+--- Wifi-Host-Driver(WHD) for RT-Thread
+      Select Chips (CYW43438)  --->                     # 选择相应的芯片
+[*]   Use resources in external storage(FAL)  --->      # 使用FAL组件加载资源
+[ ]   Default enable powersave mode                     # 默认启用低功耗模式
+(8)   The priority level value of WHD thread            # 配置WHD线程的优先级
+(5120) The stack size for WHD thread                    # 配置WHD线程的堆栈大小
+(49)  Set the WiFi_REG ON pin                           # 设置模块的WL_REG_ON引脚
+(37)  Set the HOST_WAKE_IRQ pin                         # 设置模块的HOST_WAKE_IRQ引脚
+      Select HOST_WAKE_IRQ event type (falling)  --->   # 选择“唤醒主机”的边沿
+(2)   Set the interrput priority for HOST_WAKE_IRQ pin  # 设置外部中断优先级
+[ ]   Using thread initialization                       # 创建一个线程来初始化驱动
+(500) Set the waiting time for mmcsd card scanning      # 设置mmcsd设备驱动扫卡的等待时间
 ```
-**注意:**<br>
+
+**注意**<br>
 SDIO驱动需要支持数据流传输，在RT-Thread的bsp中，大多数芯片都未适配数据流传输的功能。<br>
 `Cortex-M4`内核需要软件来计算`CRC16`并在数据后面发送它，参考 [数据流传输解决方案](./docs/SDIO数据流传输.md)。<br>
 对于`Cortex-M7`内核，只需要修改`drv_sdio.c`文件的一处地方即可，示例如下: <br>
@@ -53,22 +54,6 @@ hw_sdio->dctrl = (get_order(data->blksize)<<4) |
                     ((data->flags & DATA_STREAM) ? SDMMC_DCTRL_DTMODE_0 : 0);
 hw_sdio->idmabase0r = (rt_uint32_t)sdio->cache_buf;
 hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
-```
-
-### 软件包配置
-```
---- Using Wifi-Host-Driver(WHD)
-      Select Chips (CYW43438)  --->                     # 选择相应的模块/芯片
-[*]   Use resources in external storage(FAL)  --->      # 使用FAL组件加载资源
-[ ]   Default enable powersave mode                     # 默认启用低功耗模式
-(8)   The priority level value of WHD thread            # 配置WHD线程的优先级
-(5120) The stack size for WHD thread                    # 配置WHD线程的堆栈大小
-(49)  Set the WiFi_REG ON pin                           # 设置模块的WL_REG_ON引脚
-(37)  Set the HOST_WAKE_IRQ pin                         # 设置模块的HOST_WAKE_IRQ引脚
-      Select HOST_WAKE_IRQ event type (falling)  --->   # 选择“唤醒主机”的边沿
-(2)   Set the interrput priority for HOST_WAKE_IRQ pin  # 设置外部中断优先级
-[ ]   Using thread initialization                       # 创建一个线程来初始化驱动
-(500) Set the waiting time for mmcsd card scanning      # 设置mmcsd设备驱动扫卡的等待时间
 ```
 
 ### 资源下载
