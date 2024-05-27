@@ -26,6 +26,7 @@
  * 2023-12-28   Evlers      first implementation
  * 2024-03-25   Evlers      add configure the mmcsd card scanning wait time
  * 2024-03-25   Evlers      add the function to initialize WiFi using threads
+ * 2024-05-27   Evlers      fix the thread initialization bug and deleted the initialization return value
  */
 
 #include "rtthread.h"
@@ -538,7 +539,6 @@ static void register_whd_events (void)
 
 static void whd_init_thread (void *parameter)
 {
-    int *ret = parameter;
     static struct rt_wlan_device wlan_ap, wlan_sta;
     static const whd_oob_config_t OOB_CONFIG =
     {
@@ -566,7 +566,7 @@ static void whd_init_thread (void *parameter)
     rt_thread_mdelay(CY_WIFI_MMCSD_WAIT_TIME);
 
     /* Register the sdio driver */
-    if ((*ret = cyhal_sdio_init(&cyhal_sdio)) != CYHAL_SDIO_RET_NO_ERRORS)
+    if (cyhal_sdio_init(&cyhal_sdio) != CYHAL_SDIO_RET_NO_ERRORS)
     {
         LOG_E("Unable to register SDIO driver to mmcsd!");
         return;
@@ -576,14 +576,14 @@ static void whd_init_thread (void *parameter)
     whd_init(&whd_driver, &whd_config, &resource_ops, &whd_buffer_ops, &netif_if_ops);
 
     /* Attach a bus SDIO */
-    if ((*ret = whd_bus_sdio_attach(whd_driver, &whd_sdio_config, &cyhal_sdio)) != WHD_SUCCESS)
+    if (whd_bus_sdio_attach(whd_driver, &whd_sdio_config, &cyhal_sdio) != WHD_SUCCESS)
     {
         LOG_E("Unable to Attach to the sdio bus!");
         return;
     }
 
     /* Switch on Wifi, download firmware and create a primary interface, returns whd_interface_t */
-    if ((*ret = whd_wifi_on(whd_driver, &wifi_sta.whd_itf)) != WHD_SUCCESS)
+    if (whd_wifi_on(whd_driver, &wifi_sta.whd_itf) != WHD_SUCCESS)
     {
         LOG_E("Unable to start the WiFi module!");
         return;
@@ -591,7 +591,7 @@ static void whd_init_thread (void *parameter)
 
 #ifdef CY_WIFI_DEFAULT_ENABLE_POWERSAVE_MODE
     uint32_t value = 0;
-    if ((*ret = whd_wifi_get_powersave_mode(wifi_sta.whd_itf, &value)) != WHD_SUCCESS)
+    if (whd_wifi_get_powersave_mode(wifi_sta.whd_itf, &value) != WHD_SUCCESS)
     {
         LOG_E("The powersave mode switch status cannot be get!");
         return;
@@ -599,7 +599,7 @@ static void whd_init_thread (void *parameter)
 #endif
 
     /* Disables 802.11 power save mode on specified interface */
-    if ((*ret = whd_wifi_disable_powersave(wifi_sta.whd_itf)) != WHD_SUCCESS)
+    if (whd_wifi_disable_powersave(wifi_sta.whd_itf) != WHD_SUCCESS)
     {
         LOG_E("Failed to disable the powersave mode!");
         return;
@@ -609,7 +609,7 @@ static void whd_init_thread (void *parameter)
     if (value == PM1_POWERSAVE_MODE)
     {
         /* Enables powersave mode on specified interface */
-        if ((*ret = whd_wifi_enable_powersave(wifi_sta.whd_itf)) != WHD_SUCCESS)
+        if (whd_wifi_enable_powersave(wifi_sta.whd_itf) != WHD_SUCCESS)
         {
             LOG_E("Failed to enable the powersave mode!");
             return;
@@ -621,7 +621,7 @@ static void whd_init_thread (void *parameter)
     {
         /* Enables powersave mode on specified interface while attempting to maximise throughput */
         /* Note: When working in this mode, sdio communication timeout will occur, which is the normal operation of whd */
-        if ((*ret = whd_wifi_enable_powersave_with_throughput(wifi_sta.whd_itf, CY_WIFI_DEFAULT_PM2_SLEEP_RET_TIME)) != WHD_SUCCESS)
+        if (whd_wifi_enable_powersave_with_throughput(wifi_sta.whd_itf, CY_WIFI_DEFAULT_PM2_SLEEP_RET_TIME) != WHD_SUCCESS)
         {
             LOG_E("Failed to enable the powersave mode!");
             return;
@@ -632,7 +632,7 @@ static void whd_init_thread (void *parameter)
 #endif
 
     /* Creates a secondary interface, returns whd_interface_t */
-    if ((*ret = whd_add_secondary_interface(whd_driver, NULL, &wifi_ap.whd_itf)) != WHD_SUCCESS)
+    if (whd_add_secondary_interface(whd_driver, NULL, &wifi_ap.whd_itf) != WHD_SUCCESS)
     {
         LOG_E("Failed to create a secondary interface!");
         return;
@@ -644,28 +644,28 @@ static void whd_init_thread (void *parameter)
     /* Register the wlan device and set its working mode */
 
     /* register wlan device for ap */
-    if ((*ret = rt_wlan_dev_register(&wlan_ap, RT_WLAN_DEVICE_AP_NAME, &ops, 0, &wifi_ap)) != RT_EOK)
+    if (rt_wlan_dev_register(&wlan_ap, RT_WLAN_DEVICE_AP_NAME, &ops, 0, &wifi_ap) != RT_EOK)
     {
         LOG_E("Failed to register a wlan_ap device!");
         return;
     }
 
     /* register wlan device for sta */
-    if ((*ret = rt_wlan_dev_register(&wlan_sta, RT_WLAN_DEVICE_STA_NAME, &ops, 0, &wifi_sta)) != RT_EOK)
+    if (rt_wlan_dev_register(&wlan_sta, RT_WLAN_DEVICE_STA_NAME, &ops, 0, &wifi_sta) != RT_EOK)
     {
         LOG_E("Failed to register a wlan_sta device!");
         return;
     }
 
     /* Set wlan_sta to STATION mode */
-    if ((*ret = rt_wlan_set_mode(RT_WLAN_DEVICE_STA_NAME, RT_WLAN_STATION)) != RT_EOK)
+    if (rt_wlan_set_mode(RT_WLAN_DEVICE_STA_NAME, RT_WLAN_STATION) != RT_EOK)
     {
         LOG_E("Failed to set %s to station mode!", RT_WLAN_DEVICE_STA_NAME);
         return;
     }
 
     /* Set wlan_ap to AP mode */
-    if ((*ret = rt_wlan_set_mode(RT_WLAN_DEVICE_AP_NAME, RT_WLAN_AP)) != RT_EOK)
+    if (rt_wlan_set_mode(RT_WLAN_DEVICE_AP_NAME, RT_WLAN_AP) != RT_EOK)
     {
         LOG_E("Failed to set %s to ap mode!", RT_WLAN_DEVICE_AP_NAME);
         return;
@@ -674,14 +674,11 @@ static void whd_init_thread (void *parameter)
 
 static int rt_hw_wifi_init (void)
 {
-    int ret;
-
 #ifdef CY_WIFI_USING_THREAD_INIT
-    rt_thread_startup(rt_thread_create("whd_init", whd_init_thread, &ret, CY_WIFI_INIT_THREAD_STACK_SIZE, 20, 10));
+    rt_thread_startup(rt_thread_create("whd_init", whd_init_thread, NULL, CY_WIFI_INIT_THREAD_STACK_SIZE, 20, 10));
 #else
-    whd_init_thread(&ret);
+    whd_init_thread(NULL);
 #endif
-
-    return ret;
+    return RT_EOK;
 }
 INIT_ENV_EXPORT(rt_hw_wifi_init);
