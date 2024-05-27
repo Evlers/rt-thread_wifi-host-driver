@@ -33,7 +33,7 @@ menuconfig PKG_USING_WIFI_HOST_DRIVER
         endchoice
 
         menuconfig WHD_RESOURCES_IN_EXTERNAL_STORAGE
-            bool "Use resources in external storage(FAL)"
+            bool "Using resources in external storage(FAL)"
             select RT_USING_FAL
             default n
 
@@ -52,6 +52,10 @@ menuconfig PKG_USING_WIFI_HOST_DRIVER
                     default 1024
 
             endif
+
+        config WHD_RESOURCES_CUSTOM_NVRAM
+            bool "Using custom nvram files"
+            default n
 
         config CY_WIFI_DEFAULT_ENABLE_POWERSAVE_MODE
             bool "Default enable powersave mode"

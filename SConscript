@@ -67,29 +67,30 @@ if GetDepend(['WHD_RESOURCES_IN_EXTERNAL_STORAGE']) == False:
         path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/clm/COMPONENT_43022']
         path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/firmware/COMPONENT_43022/COMPONENT_SM']
 
-# add cyw4343W chip drivers nvram files
-if GetDepend(['WHD_USING_CHIP_CYW4343W']):
-    path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_4343W/COMPONENT_MURATA-1DX']
+if GetDepend(['WHD_RESOURCES_CUSTOM_NVRAM']) == False:
+    # add cyw4343W chip drivers nvram files
+    if GetDepend(['WHD_USING_CHIP_CYW4343W']):
+        path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_4343W/COMPONENT_MURATA-1DX']
 
-# add cyw43438 chip drivers nvram files
-if GetDepend(['WHD_USING_CHIP_CYW43438']):
-    path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43438/COMPONENT_AW-CU427-P']
+    # add cyw43438 chip drivers nvram files
+    if GetDepend(['WHD_USING_CHIP_CYW43438']):
+        path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43438/COMPONENT_AW-CU427-P']
 
-# add cyw4373 chip drivers nvram files
-if GetDepend(['WHD_USING_CHIP_CYW4373']):
-    path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_4373/COMPONENT_MURATA-2AE']
+    # add cyw4373 chip drivers nvram files
+    if GetDepend(['WHD_USING_CHIP_CYW4373']):
+        path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_4373/COMPONENT_MURATA-2AE']
 
-# add cyw43012 chip drivers nvram files
-if GetDepend(['WHD_USING_CHIP_CYW43012']):
-    path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43012/COMPONENT_CYSBSYS-RP01']
+    # add cyw43012 chip drivers nvram files
+    if GetDepend(['WHD_USING_CHIP_CYW43012']):
+        path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43012/COMPONENT_CYSBSYS-RP01']
 
-# add cyw43439 chip drivers nvram files
-if GetDepend(['WHD_USING_CHIP_CYW43439']):
-    path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43439/COMPONENT_AZW-IFW56810']
+    # add cyw43439 chip drivers nvram files
+    if GetDepend(['WHD_USING_CHIP_CYW43439']):
+        path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43439/COMPONENT_AZW-IFW56810']
 
-# add cyw43022 chip drivers nvram files
-if GetDepend(['WHD_USING_CHIP_CYW43022']):
-    path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43022/COMPONENT_CYW43022CUB']
+    # add cyw43022 chip drivers nvram files
+    if GetDepend(['WHD_USING_CHIP_CYW43022']):
+        path += [cwd + '/wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43022/COMPONENT_CYW43022CUB']
 
 # add whd porting source files
 src += Glob('porting/src/*/*.c')

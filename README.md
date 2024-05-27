@@ -23,7 +23,8 @@ RT-Thread online packages  --->                         # Online software packag
 ```
 --- Wifi-Host-Driver(WHD) for RT-Thread
       Select Chips (CYW43438)  --->                     # Select the corresponding chip
-[*]   Use resources in external storage(FAL)  --->      # Use the FAL component to load the resource
+[*]   Using resources in external storage(FAL)  --->    # Using the FAL component to load the resource
+[ ]   Using custom nvram files                          # Use custom nvram header files
 [ ]   Default enable powersave mode                     # The low power mode is selected by default
 (8)   The priority level value of WHD thread            # Configure the priority of the WHD thread
 (5120) The stack size for WHD thread                    # Configure the stack size of the WHD thread
@@ -34,6 +35,11 @@ RT-Thread online packages  --->                         # Online software packag
 [ ]   Using thread initialization                       # Create a thread to initialize the driver
 (500) Set the waiting time for mmcsd card scanning      # Set the waiting time for the scan cards
 ```
+
+- When using the FAL component to load a resource file, FAL component is automatically selected, user must transfer the `firmware` and `clm` files used by the WiFi module to the corresponding partition of FAL.
+- When using a custom `nvram` file, users need to write their own `wifi_nvram_image.h` file and include the header file path, refer to the [wifi_nvram_image.h](./wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43012/COMPONENT_CYSBSYS-RP01/wifi_nvram_image.h) file that comes with `WHD`.
+- When using the default enable powersave mode, the module will enter the energy saving mode when idle, which will cause the `SDIO` driver to print a timeout log when the module is woken up. This is a normal phenomenon.
+- The waiting time for mmcsd device driver to scan the card refers to the waiting time for the `RT-Thread sdio` device driver to scan the WiFi module, and `WHD` needs to wait for the completion of scanning the card before registering the driver.
 
 **Note**<br>
 sdio driver needs to support stream transfer. In the bsp of RT-Thread, most chips do not have the function of adapting stream transfer. <br>
