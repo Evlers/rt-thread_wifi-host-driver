@@ -26,6 +26,7 @@
  * 2023-12-21   Evlers      first implementation
  * 2024-05-18   Evlers      add __builtin_clz to support the gcc compiler
  * 2024-05-22   Evlers      fix oob interrupt loss issue
+ * 2024-05-28   Evlers      add assert to gpio external interrupt
  */
 
 #include "cyhal_gpio.h"
@@ -153,12 +154,12 @@ bool cyhal_gpio_read(cyhal_gpio_t pin)
 static void gpio_interrupt(void *args)
 {
     cyhal_gpio_event_callback_info_t *info = (cyhal_gpio_event_callback_info_t *)args;
-    uint32_t gpio_number = CYHAL_GET_PIN_NUMBER(info->pin);
+    uint32_t pin_number = CYHAL_GET_PIN_NUMBER(info->pin);
 
     /* Check the parameters */
-    RT_ASSERT(gpio_number < CYHAL_MAX_EXTI_NUMBER);
+    RT_ASSERT(pin_number < CYHAL_MAX_EXTI_NUMBER);
 
-    if ((gpio_number < CYHAL_MAX_EXTI_NUMBER) && (info->enable))
+    if ((pin_number < CYHAL_MAX_EXTI_NUMBER) && (info->enable))
     {
         cyhal_gpio_irq_event_t event = (cyhal_gpio_read(info->pin) == true) ?
                                    CYHAL_GPIO_IRQ_RISE : CYHAL_GPIO_IRQ_FALL;
@@ -181,6 +182,9 @@ void cyhal_gpio_register_irq(cyhal_gpio_t pin, uint8_t intrPriority, cyhal_gpio_
 {
     /* Get pin number */
     uint32_t pin_number = CYHAL_GET_PIN_NUMBER(pin);
+
+    /* Check the parameters */
+    RT_ASSERT(pin_number < CYHAL_MAX_EXTI_NUMBER);
 
     if (pin_number < CYHAL_MAX_EXTI_NUMBER && handler != NULL)
     {
@@ -281,6 +285,9 @@ void cyhal_gpio_irq_enable(cyhal_gpio_t pin, cyhal_gpio_irq_event_t event, bool 
 {
     /* Get pin number */
     uint32_t pin_number = CYHAL_GET_PIN_NUMBER(pin);
+
+    /* Check the parameters */
+    RT_ASSERT(pin_number < CYHAL_MAX_EXTI_NUMBER);
 
     if (enable)
     {
