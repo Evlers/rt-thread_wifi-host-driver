@@ -29,8 +29,9 @@ RT-Thread online packages  --->                         # 在线软件包
 [ ]   Default enable powersave mode                     # 默认启用低功耗模式
 (8)   The priority level value of WHD thread            # 配置WHD线程的优先级
 (5120) The stack size for WHD thread                    # 配置WHD线程的堆栈大小
-(49)  Set the WiFi_REG ON pin                           # 设置模块的WL_REG_ON引脚
-(37)  Set the HOST_WAKE_IRQ pin                         # 设置模块的HOST_WAKE_IRQ引脚
+      Select the pin name or number (Number)  --->      # 选择引脚名称或引脚编号
+(-1)  Set the WiFi_REG ON pin number                    # 设置模块的WL_REG_ON引脚
+(-1)  Set the HOST_WAKE_IRQ pin number                  # 设置模块的HOST_WAKE_IRQ引脚
       Select HOST_WAKE_IRQ event type (falling)  --->   # 选择“唤醒主机”的边沿
 (2)   Set the interrput priority for HOST_WAKE_IRQ pin  # 设置外部中断优先级
 [ ]   Using thread initialization                       # 创建一个线程来初始化驱动

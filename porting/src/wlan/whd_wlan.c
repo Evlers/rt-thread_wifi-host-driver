@@ -27,6 +27,7 @@
  * 2024-03-25   Evlers      add configure the mmcsd card scanning wait time
  * 2024-03-25   Evlers      add the function to initialize WiFi using threads
  * 2024-05-27   Evlers      fix the thread initialization bug and deleted the initialization return value
+ * 2024-05-28   Evlers      add support for pin names
  */
 
 #include "rtthread.h"
@@ -540,9 +541,13 @@ static void register_whd_events (void)
 static void whd_init_thread (void *parameter)
 {
     static struct rt_wlan_device wlan_ap, wlan_sta;
-    static const whd_oob_config_t OOB_CONFIG =
+    whd_oob_config_t oob_config =
     {
+#ifndef CYBSP_USING_PIN_NAME
         .host_oob_pin      = CYBSP_HOST_WAKE_IRQ_PIN,
+#else
+        .host_oob_pin      = rt_pin_get(CYBSP_HOST_WAKE_IRQ_PIN_NAME),
+#endif
         .dev_gpio_sel      = 0,
         .is_falling_edge   = (CYBSP_HOST_WAKE_IRQ_EVENT == CYHAL_GPIO_IRQ_FALL) ? WHD_TRUE : WHD_FALSE,
         .intr_priority     = CYBSP_OOB_INTR_PRIORITY
@@ -551,7 +556,7 @@ static void whd_init_thread (void *parameter)
     {
         .sdio_1bit_mode        = WHD_FALSE,
         .high_speed_sdio_clock = WHD_FALSE,
-        .oob_config            = OOB_CONFIG
+        .oob_config            = oob_config
     };
 
     wifi_ap.wlan = &wlan_ap;

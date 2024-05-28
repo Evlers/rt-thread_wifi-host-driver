@@ -77,13 +77,36 @@ menuconfig PKG_USING_WIFI_HOST_DRIVER
             range 0 8192
             default 5120
 
-        config CYBSP_REG_ON_PIN
-            int "Set the WiFi_REG ON pin"
-            default -1
+        choice
+            prompt "Select the pin name or number"
+            default CYBSP_USING_PIN_NUMBER
 
-        config CYBSP_HOST_WAKE_IRQ_PIN
-            int "Set the HOST_WAKE_IRQ pin"
-            default -1
+            config CYBSP_USING_PIN_NAME
+                bool "Name"
+
+            config CYBSP_USING_PIN_NUMBER
+                bool "Number"
+        endchoice
+
+        if CYBSP_USING_PIN_NAME
+            config CYBSP_REG_ON_PIN_NAME
+                string "Set the WiFi_REG ON pin name"
+                default "PA.0"
+
+            config CYBSP_HOST_WAKE_IRQ_PIN_NAME
+                string "Set the HOST_WAKE_IRQ pin name"
+                default "PA.1"
+        endif
+
+        if CYBSP_USING_PIN_NUMBER
+            config CYBSP_REG_ON_PIN
+                int "Set the WiFi_REG ON pin number"
+                default -1
+
+            config CYBSP_HOST_WAKE_IRQ_PIN
+                int "Set the HOST_WAKE_IRQ pin number"
+                default -1
+        endif
 
         choice
             prompt "Select HOST_WAKE_IRQ event type"

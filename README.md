@@ -28,8 +28,9 @@ RT-Thread online packages  --->                         # Online software packag
 [ ]   Default enable powersave mode                     # The low power mode is selected by default
 (8)   The priority level value of WHD thread            # Configure the priority of the WHD thread
 (5120) The stack size for WHD thread                    # Configure the stack size of the WHD thread
-(49)  Set the WiFi_REG ON pin                           # Set the WiFi_REG ON pin of the module
-(37)  Set the HOST_WAKE_IRQ pin                         # Set the HOST_WAKE_IRQ pin of the module
+      Select the pin name or number (Number)  --->      # Select a pin name or pin number
+(-1)  Set the WiFi_REG ON pin number                    # Set the WiFi_REG ON pin of the module
+(-1)  Set the HOST_WAKE_IRQ pin number                  # Set the HOST_WAKE_IRQ pin of the module
       Select HOST_WAKE_IRQ event type (falling)  --->   # Select the edge of Wake up host
 (2)   Set the interrput priority for HOST_WAKE_IRQ pin  # Set the external interrupt priority
 [ ]   Using thread initialization                       # Create a thread to initialize the driver
