@@ -25,6 +25,7 @@
  * Date         Author      Notes
  * 2023-12-21   Evlers      first implementation
  * 2024-05-17   Evlers      change the block transfer size to a fixed 64 bytes
+ * 2024-06-05   Evlers      fix assertion caused by no response data required in whd
  */
 
 #include "cyhal_sdio.h"
@@ -139,7 +140,10 @@ cy_rslt_t cyhal_sdio_send_cmd(const cyhal_sdio_t *obj, cyhal_transfer_t directio
     if (cmd.resp[0] & R5_OUT_OF_RANGE)
         return CYHAL_SDIO_RET_RESP_FLAG_ERROR;
 
-    *response = cmd.resp[0];
+    if (response != NULL)
+    {
+        *response = cmd.resp[0];
+    }
 
     return ret;
 }
@@ -209,7 +213,10 @@ cy_rslt_t cyhal_sdio_bulk_transfer(cyhal_sdio_t *obj, cyhal_transfer_t direction
     mmcsd_send_request(host, &req);
     mmcsd_host_unlock(obj->card->host);
 
-    *response = cmd.resp[0];
+    if (response != NULL)
+    {
+        *response = cmd.resp[0];
+    }
 
     return (req.cmd->err) ? CYHAL_SDIO_RET_NO_SP_ERRORS : CYHAL_SDIO_RET_NO_ERRORS;
 }
