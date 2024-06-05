@@ -26,11 +26,11 @@
  * 2023-12-21   Evlers      first implementation
  * 2024-05-17   Evlers      fixed an bug where a module could not be reset
  * 2024-05-28   Evlers      add support for pin names
+ * 2024-06-05   Evlers      remove the unused header file drv gpio.h
  */
 
 #include "rtthread.h"
 #include "rtdevice.h"
-#include "drv_gpio.h"
 
 #include "cybsp.h"
 
