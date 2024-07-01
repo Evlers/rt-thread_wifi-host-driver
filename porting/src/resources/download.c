@@ -24,6 +24,7 @@
  * Change Logs:
  * Date         Author      Notes
  * 2024-01-27   Evlers      first implementation
+ * 2024-07-01   Evlers      add md5 checksum printing for resource file downloads
  */
 
 #include <stdlib.h>
@@ -38,6 +39,10 @@
 #include "fal.h"
 #include "wiced_resource.h"
 #include "whd_resource_api.h"
+
+#if defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5)
+#include "tiny_md5.h"
+#endif /* defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5) */
 
 static size_t download_file_total_size, download_file_cur_size;
 static const struct fal_partition *download_part = RT_NULL;
@@ -86,6 +91,44 @@ static enum rym_code ymodem_on_data (struct rym_ctx *ctx, rt_uint8_t *buf, rt_si
     return RYM_CODE_ACK;
 }
 
+#if defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5)
+static void print_md5_checksum (uint32_t addr, uint32_t size)
+{
+    uint8_t md5_value[16];
+    uint32_t read_count = 0;
+    uint8_t *buf = rt_malloc(WHD_RESOURCES_BLOCK_SIZE);
+    tiny_md5_context *ctx = rt_malloc(sizeof(tiny_md5_context));
+    RT_ASSERT(buf != NULL && ctx != NULL);
+
+    /* Calculate the md5 checksum */
+    tiny_md5_starts(ctx);
+    while (read_count < size)
+    {
+        uint32_t length = MIN(WHD_RESOURCES_BLOCK_SIZE, size - read_count);
+        if (fal_partition_read(download_part, addr + read_count, buf, length) < 0)
+        {
+            rt_kprintf("Failed to read while verifying file!");
+            goto __error;
+        }
+        tiny_md5_update(ctx, buf, length);
+        read_count += length;
+    }
+    tiny_md5_finish(ctx, md5_value);
+
+    /* print the md5 checksum */
+    rt_kprintf("MD5 value: ");
+    for (uint8_t i = 0; i < sizeof(md5_value); i ++)
+    {
+        rt_kprintf("%02X", md5_value[i]);
+    }
+    rt_kprintf("\n");
+
+    __error:
+    rt_free(buf);
+    rt_free(ctx);
+}
+#endif /* defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5) */
+
 static void whd_res_download (int argc, char **argv)
 {
     struct rym_ctx rctx;
@@ -124,6 +167,9 @@ static void whd_res_download (int argc, char **argv)
             }
 
             rt_kprintf("\nDownload %s to flash success. file size: %u\n", download_part->name, download_file_total_size);
+#if defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5)
+            print_md5_checksum(sizeof(resource_hnd_t), file_head.size);
+#endif /* defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5) */
         }
         else
         {
