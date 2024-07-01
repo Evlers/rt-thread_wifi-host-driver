@@ -70,6 +70,7 @@ typedef struct
 {
     struct rt_mmcsd_card *card;
     struct rt_sdio_device_id *dev_id;
+    rt_sem_t probe;
 } cyhal_sdio_t;
 
 /** SPI object */

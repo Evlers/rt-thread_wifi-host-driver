@@ -26,6 +26,7 @@
  * 2023-12-21   Evlers      first implementation
  * 2024-05-17   Evlers      change the block transfer size to a fixed 64 bytes
  * 2024-06-05   Evlers      fix assertion caused by no response data required in whd
+ * 2024-07-01   Evlers      add the function to automatically probe sdio cards
  */
 
 #include "cyhal_sdio.h"
@@ -65,7 +66,7 @@ cy_rslt_t cyhal_sdio_init(cyhal_sdio_t *obj)
     tmp_cyhal_sdio = obj;
     tmp_cyhal_sdio->dev_id = &sdio_device_id;
 
-    if (sdio_register_driver(&sdio_driver) != RT_EOK)
+    if (sdio_register_driver(&sdio_driver) == RT_ENOMEM)
     {
         return CYHAL_SDIO_RET_NO_SP_ERRORS;
     }
@@ -274,12 +275,13 @@ void cyhal_sdio_irq_enable(cyhal_sdio_t *obj, cyhal_sdio_irq_event_t event, bool
 
 static rt_int32_t wlan_probe(struct rt_mmcsd_card *card)
 {
-    cy_rslt_t result = CYHAL_SDIO_RET_NO_ERRORS;
-
     /* save mmcsd card */
     tmp_cyhal_sdio->card = card;
 
-    return result;
+    /* release the probe semaphore */
+    rt_sem_release(tmp_cyhal_sdio->probe);
+
+    return CYHAL_SDIO_RET_NO_ERRORS;
 }
 
 static rt_int32_t wlan_remove(struct rt_mmcsd_card *card)

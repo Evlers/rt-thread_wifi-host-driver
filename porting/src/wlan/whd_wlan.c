@@ -28,6 +28,7 @@
  * 2024-03-25   Evlers      add the function to initialize WiFi using threads
  * 2024-05-27   Evlers      fix the thread initialization bug and deleted the initialization return value
  * 2024-05-28   Evlers      add support for pin names
+ * 2024-07-01   Evlers      add the function to automatically probe sdio cards
  */
 
 #include "rtthread.h"
@@ -563,12 +564,9 @@ static void whd_init_thread (void *parameter)
     wifi_sta.wlan = &wlan_sta;
 
 
-    /* Initialize WiFi Host Drivers (WHD) */
-    rt_kprintf("RT-Thread WiFi Host Drivers (WHD)\n");
-    rt_kprintf("You can get the latest version on https://github.com/Evlers/rt-thread_wifi-host-driver\n");
-
-    /* Wait for the mmcsd to finish reading the card */
-    rt_thread_mdelay(CY_WIFI_MMCSD_WAIT_TIME);
+    /* Creates a semaphore to wait probe the sdio card */
+    cyhal_sdio.probe = rt_sem_create("sdio probe", 0, RT_IPC_FLAG_PRIO);
+    RT_ASSERT(cyhal_sdio.probe != NULL);
 
     /* Register the sdio driver */
     if (cyhal_sdio_init(&cyhal_sdio) != CYHAL_SDIO_RET_NO_ERRORS)
@@ -576,6 +574,16 @@ static void whd_init_thread (void *parameter)
         LOG_E("Unable to register SDIO driver to mmcsd!");
         return;
     }
+
+    LOG_D("Wait for sdio card registration..");
+
+    /* Waiting card registration and delete the semaphore */
+    rt_sem_take(cyhal_sdio.probe, RT_WAITING_FOREVER);
+    rt_sem_delete(cyhal_sdio.probe);
+
+    /* Initialize WiFi Host Drivers (WHD) */
+    rt_kprintf("RT-Thread WiFi Host Drivers (WHD)\n");
+    rt_kprintf("You can get the latest version on https://github.com/Evlers/rt-thread_wifi-host-driver\n");
 
     /* Initialize WiFi host drivers */
     whd_init(&whd_driver, &whd_config, &resource_ops, &whd_buffer_ops, &netif_if_ops);
