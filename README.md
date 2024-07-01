@@ -34,7 +34,6 @@ RT-Thread online packages  --->                         # Online software packag
       Select HOST_WAKE_IRQ event type (falling)  --->   # Select the edge of Wake up host
 (2)   Set the interrput priority for HOST_WAKE_IRQ pin  # Set the external interrupt priority
 [ ]   Using thread initialization                       # Create a thread to initialize the driver
-(500) Set the waiting time for mmcsd card scanning      # Set the waiting time for the scan cards
 ```
 
 - When using the FAL component to load a resource file, FAL component is automatically selected, user must transfer the `firmware` and `clm` files used by the WiFi module to the corresponding partition of FAL.
@@ -100,7 +99,14 @@ Download whd_firmware to flash success. file size: 419799
 ```
 - After downloading the firmware and clm resource files, reset and restart.
 
-
+#### Resource file verification function (Recommended)
+- In the package, select `TinyCrypt: A tiny and configurable crypt library`
+```
+RT-Thread online packages  --->                                   # Online software package
+    security packages  --->                                       # In the security package
+        TinyCrypt: A tiny and configurable crypt library  --->    # Select TinyCrypt
+```
+- Select the `TinyCrypt` package, after the file is downloaded complete, the md5 checksum is calculated and printed automatically.
 
 ### Supported Chip
 

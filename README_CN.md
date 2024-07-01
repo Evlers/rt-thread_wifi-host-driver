@@ -35,7 +35,6 @@ RT-Thread online packages  --->                         # 在线软件包
       Select HOST_WAKE_IRQ event type (falling)  --->   # 选择“唤醒主机”的边沿
 (2)   Set the interrput priority for HOST_WAKE_IRQ pin  # 设置外部中断优先级
 [ ]   Using thread initialization                       # 创建一个线程来初始化驱动
-(500) Set the waiting time for mmcsd card scanning      # 设置mmcsd设备驱动扫卡的等待时间
 ```
 
 - 使用FAL组件加载资源文件时，FAL组件会自动选中，用户必须将WiFi模组用到的`firmware`和`clm`文件传输到`FAL`对应分区。
@@ -99,6 +98,15 @@ Please select the whd_firmware file and use Ymodem to send.
 Download whd_firmware to flash success. file size: 419799
 ```
 - 下载完固件和clm资源文件后，复位重启即可正常加载资源文件。
+
+#### 资源文件的校验功能（建议打开）
+- 在软件包选中`TinyCrypt: A tiny and configurable crypt library`
+```
+RT-Thread online packages  --->                                   # 在线软件包
+    security packages  --->                                       # 安全软件包中
+        TinyCrypt: A tiny and configurable crypt library  --->    # 选中TinyCrypt
+```
+- 打开`TinyCrypt`软件包后，资源文件下载完成会自动计算并打印文件的`MD5`校验和。
 
 ### 芯片支持
 
