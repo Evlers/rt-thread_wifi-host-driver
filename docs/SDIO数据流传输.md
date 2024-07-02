@@ -1,6 +1,6 @@
 ## 简介
 
-在调试SDIO接口的WiFi驱动时，WiFi驱动使用到了`数据流传输`模式，在`Cortex-M4`内核中数据流传输是不完善的，在数据传输完成后外设不会发送数据的`CRC16校验`，如下图的`GD32F4xx`用户手册中可以看到，在使用`数据流传输`模式确实是不支持触发硬件CRC的传输。而在`Cortex-M7`内核是支持的，例如`STM32H750`。
+在调试SDIO接口的WiFi驱动时，WiFi驱动使用到了`数据流传输`模式，在`Cortex-M4`内核的芯片中，多数`sdio`外设是没有完全按照规范文件来的，在数据流传输完成后外设不会发送数据的`CRC16校验`，如下图的`GD32F4xx`用户手册中可以看到，在使用`数据流传输`模式确实是不支持触发硬件CRC的传输。而在较新的`Cortex-M7`内核的芯片中，`sdio`外设是严格按照规范来的，例如`STM32H750`。
 
 ![sdio_read_write](./images/sdio_read_write.png)
 
@@ -42,7 +42,7 @@
 drv_sdio_crc.c
 ```c
 /*
- * Copyright (c) 2006-2024, Evlers Developers
+ * Copyright (c) 2006-2024, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -56,7 +56,7 @@ drv_sdio_crc.c
 
 /**
  * @brief Calculate CRC7 bit by bit
- * 
+ *
  * @param crc The last or initialized crc value
  * @param byte Bit data
  * @param bits The number of bit to be calculated (max is 8)
@@ -65,21 +65,21 @@ drv_sdio_crc.c
 static uint8_t calc_crc7 (uint8_t crc, uint8_t byte, uint8_t bits)
 {
     for (int i = bits - 1; i >= 0; i --)
-	{
-		uint8_t bit = (byte >> i) & 0x0001;
-		uint8_t crchigh = (crc >> 6) & 0x0001;
-		uint8_t xorb  = crchigh ^ bit;
-		crc <<= 1;
-		crc  &= 0x7F;
+    {
+        uint8_t bit = (byte >> i) & 0x0001;
+        uint8_t crchigh = (crc >> 6) & 0x0001;
+        uint8_t xorb  = crchigh ^ bit;
+        crc <<= 1;
+        crc  &= 0x7F;
         crc  ^= (xorb << 3) | xorb;
-	}
+    }
 
-	return crc;
+    return crc;
 }
 
 /**
  * @brief Calculate CRC16 bit by bit
- * 
+ *
  * @param crc The last or initialized crc value
  * @param byte Bit data
  * @param bits The number of bit to be calculated (max is 8)
@@ -87,61 +87,61 @@ static uint8_t calc_crc7 (uint8_t crc, uint8_t byte, uint8_t bits)
  */
 static uint16_t calc_crc16 (uint16_t crc, uint8_t byte, uint8_t bits)
 {
-	for (int i = bits - 1; i >= 0; i --)
-	{
-		uint16_t bit = (byte >> i) & 0x0001;
-		uint16_t crchigh = (crc >> 15) & 0x0001;
-		uint16_t xorb  = crchigh ^ bit;
-		crc <<= 1;
-		crc  &= 0xFFFF;
+    for (int i = bits - 1; i >= 0; i --)
+    {
+        uint16_t bit = (byte >> i) & 0x0001;
+        uint16_t crchigh = (crc >> 15) & 0x0001;
+        uint16_t xorb  = crchigh ^ bit;
+        crc <<= 1;
+        crc  &= 0xFFFF;
         crc  ^= (xorb << 12) | (xorb << 5) | xorb;
-	}
+    }
 
-	return crc;
+    return crc;
 }
 
 /**
  * @brief Compute CRC7 bit by bit for the data buffer
- * 
+ *
  * @param ptr Bit data buffer
  * @param bit_num Number of bits
  * @return uint16_t Output CRC7 value
  */
 uint8_t sdio_crc7_calc (const uint8_t *ptr, uint32_t bit_num)
 {
-	uint32_t index = 0;
-	uint8_t crc = 0;
+    uint32_t index = 0;
+    uint8_t crc = 0;
 
-	while (index < bit_num)
-	{
-		uint8_t calc_bit_num = (bit_num - index) >= 8 ? 8 : bit_num - index;
-		crc = calc_crc7(crc, ptr[index / 8], calc_bit_num);
-		index += calc_bit_num;
-	}
+    while (index < bit_num)
+    {
+        uint8_t calc_bit_num = (bit_num - index) >= 8 ? 8 : bit_num - index;
+        crc = calc_crc7(crc, ptr[index / 8], calc_bit_num);
+        index += calc_bit_num;
+    }
 
-	return crc;
+    return crc;
 }
 
 /**
  * @brief Compute CRC16 bit by bit for the data buffer
- * 
+ *
  * @param ptr Bit data buffer
  * @param bit_num Number of bits
  * @return uint16_t Output CRC16 value
  */
 static uint16_t sdio_crc16_calc (const uint8_t *ptr, uint32_t bit_num)
 {
-	uint32_t index = 0;
-	uint16_t crc = 0;
+    uint32_t index = 0;
+    uint16_t crc = 0;
 
-	while (index < bit_num)
-	{
-		uint8_t calc_bit_num = (bit_num - index) >= 8 ? 8 : bit_num - index;
-		crc = calc_crc16(crc, ptr[index / 8], calc_bit_num);
-		index += calc_bit_num;
-	}
+    while (index < bit_num)
+    {
+        uint8_t calc_bit_num = (bit_num - index) >= 8 ? 8 : bit_num - index;
+        crc = calc_crc16(crc, ptr[index / 8], calc_bit_num);
+        index += calc_bit_num;
+    }
 
-	return crc;
+    return crc;
 }
 
 
@@ -154,160 +154,159 @@ static uint16_t sdio_crc16_calc (const uint8_t *ptr, uint32_t bit_num)
 
 /**
  * @brief Split the bus data onto each data wire
- * 
+ *
  * @param each_data_wire Output the data of each data wire
  * @param bus_data Input bus data
  * @param len Bus data length
  */
 static void split_4bit_bus_data (uint8_t *each_data_wire[4], uint8_t *bus_data, uint32_t len)
 {
-	for (uint32_t i = 0; i < len; i ++)
-	{
-		uint8_t temp = i >= len ? 0 : bus_data[i];
-		uint8_t j = i / 4;
-		
-		each_data_wire[3][j] <<= 1;
-		each_data_wire[2][j] <<= 1;
-		each_data_wire[1][j] <<= 1;
-		each_data_wire[0][j] <<= 1;
-		
-		if (temp & 0x80) each_data_wire[3][j] |= 0x01;
-		else each_data_wire[3][j] &= ~0x01;
-		
-		if (temp & 0x40) each_data_wire[2][j] |= 0x01;
-		else each_data_wire[2][j] &= ~0x01;
-		
-		if (temp & 0x20) each_data_wire[1][j] |= 0x01;
-		else each_data_wire[1][j] &= ~0x01;
-		
-		if (temp & 0x10) each_data_wire[0][j] |= 0x01;
-		else each_data_wire[0][j] &= ~0x01;
-		
-		each_data_wire[3][j] <<= 1;
-		each_data_wire[2][j] <<= 1;
-		each_data_wire[1][j] <<= 1;
-		each_data_wire[0][j] <<= 1;
-		
-		if (temp & 0x08) each_data_wire[3][j] |= 0x01;
-		else each_data_wire[3][j] &= ~0x01;
-		
-		if (temp & 0x04) each_data_wire[2][j] |= 0x01;
-		else each_data_wire[2][j] &= ~0x01;
-		
-		if (temp & 0x02) each_data_wire[1][j] |= 0x01;
-		else each_data_wire[1][j] &= ~0x01;
-		
-		if (temp & 0x01) each_data_wire[0][j] |= 0x01;
-		else each_data_wire[0][j] &= ~0x01;
-	}
+    for (uint32_t i = 0; i < len; i ++)
+    {
+        uint8_t temp = i >= len ? 0 : bus_data[i];
+        uint8_t j = i / 4;
+
+        each_data_wire[3][j] <<= 1;
+        each_data_wire[2][j] <<= 1;
+        each_data_wire[1][j] <<= 1;
+        each_data_wire[0][j] <<= 1;
+
+        if (temp & 0x80) each_data_wire[3][j] |= 0x01;
+        else each_data_wire[3][j] &= ~0x01;
+
+        if (temp & 0x40) each_data_wire[2][j] |= 0x01;
+        else each_data_wire[2][j] &= ~0x01;
+
+        if (temp & 0x20) each_data_wire[1][j] |= 0x01;
+        else each_data_wire[1][j] &= ~0x01;
+
+        if (temp & 0x10) each_data_wire[0][j] |= 0x01;
+        else each_data_wire[0][j] &= ~0x01;
+
+        each_data_wire[3][j] <<= 1;
+        each_data_wire[2][j] <<= 1;
+        each_data_wire[1][j] <<= 1;
+        each_data_wire[0][j] <<= 1;
+
+        if (temp & 0x08) each_data_wire[3][j] |= 0x01;
+        else each_data_wire[3][j] &= ~0x01;
+
+        if (temp & 0x04) each_data_wire[2][j] |= 0x01;
+        else each_data_wire[2][j] &= ~0x01;
+
+        if (temp & 0x02) each_data_wire[1][j] |= 0x01;
+        else each_data_wire[1][j] &= ~0x01;
+
+        if (temp & 0x01) each_data_wire[0][j] |= 0x01;
+        else each_data_wire[0][j] &= ~0x01;
+    }
 }
 
 /**
  * @brief Calculates the CRC16 value of the each data wire
- * 
+ *
  * @param crc_value Output the CRC16 value of each data wire
  * @param each_data_wire Input the data of each data wire
  * @param bit_num The number of bits per data wire
  */
 static void calc_each_data_wire_crc16 (uint8_t crc_value[8], uint8_t *each_data_wire[4], uint32_t bit_num)
 {
-	uint16_t crc16;
+    uint16_t crc16;
 
-	/* Calculate the CRC16/CCITT of the each data wire */
-	crc16 = sdio_crc16_calc(each_data_wire[0], bit_num);
-	crc_value[0] = (uint8_t )(crc16 >> 8);
-	crc_value[1] = (uint8_t )crc16;
-	
-	crc16 = sdio_crc16_calc(each_data_wire[1], bit_num);
-	crc_value[2] = (uint8_t )(crc16 >> 8);
-	crc_value[3] = (uint8_t )crc16;
-	
-	crc16 = sdio_crc16_calc(each_data_wire[2], bit_num);
-	crc_value[4] = (uint8_t )(crc16 >> 8);
-	crc_value[5] = (uint8_t )crc16;
-	
-	crc16 = sdio_crc16_calc(each_data_wire[3], bit_num);
-	crc_value[6] = (uint8_t )(crc16 >> 8);
-	crc_value[7] = (uint8_t )crc16;
+    /* Calculate the CRC16/CCITT of the each data wire */
+    crc16 = sdio_crc16_calc(each_data_wire[0], bit_num);
+    crc_value[0] = (uint8_t )(crc16 >> 8);
+    crc_value[1] = (uint8_t )crc16;
+
+    crc16 = sdio_crc16_calc(each_data_wire[1], bit_num);
+    crc_value[2] = (uint8_t )(crc16 >> 8);
+    crc_value[3] = (uint8_t )crc16;
+
+    crc16 = sdio_crc16_calc(each_data_wire[2], bit_num);
+    crc_value[4] = (uint8_t )(crc16 >> 8);
+    crc_value[5] = (uint8_t )crc16;
+
+    crc16 = sdio_crc16_calc(each_data_wire[3], bit_num);
+    crc_value[6] = (uint8_t )(crc16 >> 8);
+    crc_value[7] = (uint8_t )crc16;
 }
 
 /**
  * @brief Merge CRC values for each data wire into the bus
- * 
+ *
  * @param output Merge to the bus for crc data
  * @param input CRC16 data for each data wire
  */
 static void merge_crc_to_bus (uint8_t output[8], uint8_t input[8])
 {
-	uint8_t movebit1 = 0x80, movebit2 = 0x40;
+    uint8_t movebit1 = 0x80, movebit2 = 0x40;
 
-	for (uint8_t i = 0; i < 8; i ++)
-	{
-		uint8_t k = i / 4;
-		
-		if (i == 4)
-		{
-			movebit1 = 0x80;
-			movebit2 = 0x40;
-		}
-		
-		for (uint8_t j = 0; j < 8; j += 2)
-		{
-			uint8_t temp = input[j + k];
-			output[i] >>= 1;
-			
-			if (temp & movebit1) output[i] |= 0x80;
-			else output[i] &= ~0x80;
-			
-			if(temp & movebit2) output[i] |= 0x08;
-			else output[i] &= ~0x08;
-		}
+    for (uint8_t i = 0; i < 8; i ++)
+    {
+        uint8_t k = i / 4;
 
-		movebit1 >>= 2;
-		movebit2 >>= 2;
-	}
+        if (i == 4)
+        {
+            movebit1 = 0x80;
+            movebit2 = 0x40;
+        }
+
+        for (uint8_t j = 0; j < 8; j += 2)
+        {
+            uint8_t temp = input[j + k];
+            output[i] >>= 1;
+
+            if (temp & movebit1) output[i] |= 0x80;
+            else output[i] &= ~0x80;
+
+            if(temp & movebit2) output[i] |= 0x08;
+            else output[i] &= ~0x08;
+        }
+
+        movebit1 >>= 2;
+        movebit2 >>= 2;
+    }
 }
 
 /**
  * @brief Calculate CRC16 for SDIO bus data
- * 
+ *
  * @param crc Output CRC16 value[2]
  * @param ptr SDIO data (1wire)
  * @param len Length for sdio bus data
  */
 void sdio_crc16_calc_1bit_bus (uint8_t crc[2], uint8_t *ptr, uint16_t len)
 {
-	uint16_t crc16 = sdio_crc16_calc(ptr, len * 8);
-	
-	crc[0] = (uint8_t )(crc16 >> 8);
-	crc[1] = (uint8_t )crc16;
+    uint16_t crc16 = sdio_crc16_calc(ptr, len * 8);
+
+    crc[0] = (uint8_t )(crc16 >> 8);
+    crc[1] = (uint8_t )crc16;
 }
 
 /**
  * @brief Calculate CRC16 for SDIO bus data
- * 
+ *
  * @param crc Output CRC16 value[8]
  * @param ptr SDIO bus data (4wire)
  * @param len Length for sdio data
  */
 void sdio_crc16_calc_4bit_bus (uint8_t crc[8], uint8_t *ptr, uint16_t len)
 {
-	const int data_wire_buf_len = DRV_SDIO_CRC16_4BIT_BUS_DATA_MAX_LEN / 8 / 4;
-	uint8_t data_wire[4][data_wire_buf_len] = { 0 };
-	uint8_t *each_data_wire[4] = { data_wire[0], data_wire[1], data_wire[2], data_wire[3] };
-	uint8_t crc_buff[8] = { 0 };
+    uint8_t data_wire[4][DRV_SDIO_CRC16_4BIT_BUS_DATA_MAX_LEN / 8 / 4] = { 0 };
+    uint8_t *each_data_wire[4] = { data_wire[0], data_wire[1], data_wire[2], data_wire[3] };
+    uint8_t crc_buff[8] = { 0 };
 
-	/* The bus data length must not exceed the allowed range */
-	if (len > DRV_SDIO_CRC16_4BIT_BUS_DATA_MAX_LEN) return ;
+    /* The bus data length must not exceed the allowed range */
+    if (len > DRV_SDIO_CRC16_4BIT_BUS_DATA_MAX_LEN) return ;
 
-	/* Split the bus data onto each data wire */
-	split_4bit_bus_data(each_data_wire, ptr, len);
+    /* Split the bus data onto each data wire */
+    split_4bit_bus_data(each_data_wire, ptr, len);
 
-	/* Calculates the CRC16 value of the each data wire */
-	calc_each_data_wire_crc16(crc_buff, each_data_wire, len * 8 / 4);
+    /* Calculates the CRC16 value of the each data wire */
+    calc_each_data_wire_crc16(crc_buff, each_data_wire, len * 8 / 4);
 
-	/* Merge CRC values for each data wire into the bus */
-	merge_crc_to_bus(crc, crc_buff);
+    /* Merge CRC values for each data wire into the bus */
+    merge_crc_to_bus(crc, crc_buff);
 }
 
 ```
@@ -315,7 +314,7 @@ void sdio_crc16_calc_4bit_bus (uint8_t crc[8], uint8_t *ptr, uint16_t len)
 drv_sdio_crc.h
 ```c
 /*
- * Copyright (c) 2006-2024, Evlers Developers
+ * Copyright (c) 2006-2024, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -347,7 +346,7 @@ void sdio_crc16_calc_4bit_bus (uint8_t crc[8], uint8_t *ptr, uint16_t len);
 drv_sdio.c
 ```c
 /*
- * Copyright (c) 2006-2023, RT-Thread Development Team
+ * Copyright (c) 2006-2024, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -355,6 +354,9 @@ drv_sdio.c
  * Date             Author          Notes
  * 2023-12-30       Evlers          first version
  * 2024-01-21       Evlers          Add support for byte stream data transfer software CRC16
+ * 2024-03-20       Evlers          add driver configure
+ * 2024-03-21       Evlers          add msp layer supports
+ * 2024-06-28       Evlers          fix wild pointer in clk_get
  */
 
 #include <rthw.h>
@@ -366,10 +368,12 @@ drv_sdio.c
 #include <string.h>
 #include "drv_sdio.h"
 #include "drv_sdio_crc.h"
+#include "drv_dma.h"
+#include "drv_config.h"
 
 /**
- * When the WiFi module is hibernating, 
- * command 52 will time out for the first time. 
+ * When the WiFi module is hibernating,
+ * command 52 will time out for the first time.
  * This is a normal phenomenon and can be ignored.
  * So here the log level is set to the lowest (no logs are printed).
  */
@@ -383,6 +387,8 @@ drv_sdio.c
 #define RTHW_SDIO_LOCK(_sdio)                   rt_mutex_take(&_sdio->mutex, RT_WAITING_FOREVER)
 #define RTHW_SDIO_UNLOCK(_sdio)                 rt_mutex_release(&_sdio->mutex);
 
+static const struct gd32_sdio_config sdio_config = SDIO_CONFIG;
+static const struct dma_config dma_config = SDIO_DMA_CONFIG;
 
 struct sdio_pkg
 {
@@ -399,13 +405,13 @@ struct rthw_sdio
     struct rt_mutex mutex;
     struct sdio_pkg *pkg;
 };
-rt_align(SDIO_ALIGN)
 
+rt_align(SDIO_ALIGN)
 static rt_uint8_t cache_buf[SDIO_BUFF_SIZE];
 
 static rt_uint32_t gd32_sdio_clk_get(uint32_t hw_sdio)
 {
-    return SDIO_CLOCK_FREQ;
+    return sdio_config.sdio_clock_freq;
 }
 
 /*!
@@ -542,13 +548,13 @@ static void rthw_sdio_transfer_by_dma(struct rthw_sdio *sdio, struct sdio_pkg *p
     size = pkg->cmd->data->blks * pkg->cmd->data->blksize;
 
     /* clear all the interrupt flags */
-    dma_flag_clear(SDIO_DMA, SDIO_DMA_CHANNEL, DMA_FLAG_FEE);
-    dma_flag_clear(SDIO_DMA, SDIO_DMA_CHANNEL, DMA_FLAG_SDE);
-    dma_flag_clear(SDIO_DMA, SDIO_DMA_CHANNEL, DMA_FLAG_TAE);
-    dma_flag_clear(SDIO_DMA, SDIO_DMA_CHANNEL, DMA_FLAG_HTF);
-    dma_flag_clear(SDIO_DMA, SDIO_DMA_CHANNEL, DMA_FLAG_FTF);
-    dma_channel_disable(SDIO_DMA, SDIO_DMA_CHANNEL);
-    dma_deinit(SDIO_DMA, SDIO_DMA_CHANNEL);
+    dma_flag_clear(dma_config.periph, dma_config.channel, DMA_FLAG_FEE);
+    dma_flag_clear(dma_config.periph, dma_config.channel, DMA_FLAG_SDE);
+    dma_flag_clear(dma_config.periph, dma_config.channel, DMA_FLAG_TAE);
+    dma_flag_clear(dma_config.periph, dma_config.channel, DMA_FLAG_HTF);
+    dma_flag_clear(dma_config.periph, dma_config.channel, DMA_FLAG_FTF);
+    dma_channel_disable(dma_config.periph, dma_config.channel);
+    dma_deinit(dma_config.periph, dma_config.channel);
 
     sdio_dma_enable();
     if (pkg->cmd->data->flags & DATA_DIR_WRITE)
@@ -580,11 +586,11 @@ static void rthw_sdio_transfer_by_dma(struct rthw_sdio *sdio, struct sdio_pkg *p
             dma_struct.memory_burst_width = DMA_MEMORY_BURST_4_BEAT;
             dma_struct.critical_value     = DMA_FIFO_4_WORD;
         }
-        dma_multi_data_mode_init(SDIO_DMA, SDIO_DMA_CHANNEL, &dma_struct);
+        dma_multi_data_mode_init(dma_config.periph, dma_config.channel, &dma_struct);
 
-        dma_flow_controller_config(SDIO_DMA, SDIO_DMA_CHANNEL, DMA_FLOW_CONTROLLER_PERI);
-        dma_channel_subperipheral_select(SDIO_DMA, SDIO_DMA_CHANNEL, SDIO_DMA_SUBPERI);
-        dma_channel_enable(SDIO_DMA, SDIO_DMA_CHANNEL);
+        dma_flow_controller_config(dma_config.periph, dma_config.channel, DMA_FLOW_CONTROLLER_PERI);
+        dma_channel_subperipheral_select(dma_config.periph, dma_config.channel, dma_config.subperiph);
+        dma_channel_enable(dma_config.periph, dma_config.channel);
     }
     else if (pkg->cmd->data->flags & DATA_DIR_READ)
     {
@@ -615,11 +621,11 @@ static void rthw_sdio_transfer_by_dma(struct rthw_sdio *sdio, struct sdio_pkg *p
             dma_struct.memory_burst_width = DMA_MEMORY_BURST_4_BEAT;
             dma_struct.critical_value     = DMA_FIFO_4_WORD;
         }
-        dma_multi_data_mode_init(SDIO_DMA, SDIO_DMA_CHANNEL, &dma_struct);
+        dma_multi_data_mode_init(dma_config.periph, dma_config.channel, &dma_struct);
 
-        dma_flow_controller_config(SDIO_DMA, SDIO_DMA_CHANNEL, DMA_FLOW_CONTROLLER_PERI);
-        dma_channel_subperipheral_select(SDIO_DMA, SDIO_DMA_CHANNEL, SDIO_DMA_SUBPERI);
-        dma_channel_enable(SDIO_DMA, SDIO_DMA_CHANNEL);
+        dma_flow_controller_config(dma_config.periph, dma_config.channel, DMA_FLOW_CONTROLLER_PERI);
+        dma_channel_subperipheral_select(dma_config.periph, dma_config.channel, dma_config.subperiph);
+        dma_channel_enable(dma_config.periph, dma_config.channel);
 
         /* enable the DSM(data state machine) for data transfer */
         sdio_dsm_enable();
@@ -685,7 +691,7 @@ static void rthw_sdio_send_command(struct rthw_sdio *sdio, struct sdio_pkg *pkg)
 
         /* sdio data configure */
         sdio_data_config(HW_SDIO_DATATIMEOUT, data->blks * data->blksize, sd_datablocksize_get(data->blksize));
-        sdio_data_transfer_config((data->flags & DATA_STREAM) ? SDIO_TRANSMODE_STREAM : SDIO_TRANSMODE_BLOCK, 
+        sdio_data_transfer_config((data->flags & DATA_STREAM) ? SDIO_TRANSMODE_STREAM : SDIO_TRANSMODE_BLOCK,
                                     (data->flags & DATA_DIR_READ) ? SDIO_TRANSDIRECTION_TOSDIO : SDIO_TRANSDIRECTION_TOCARD);
 
         sdio_operation_enable();
@@ -1028,7 +1034,7 @@ static struct rt_mmcsd_host *sdio_host_create(struct gd32_sdio_des *sdio_des)
     }
 
     rt_memcpy(&sdio->sdio_des, sdio_des, sizeof(struct gd32_sdio_des));
-    sdio->sdio_des.hw_sdio = (sdio_des->hw_sdio == RT_NULL ? SDIO_BASE_ADDRESS : sdio_des->hw_sdio);
+    sdio->sdio_des.hw_sdio = (sdio_des->hw_sdio == RT_NULL ? sdio_config.periph : sdio_des->hw_sdio);
     sdio->sdio_des.clk_get = (sdio_des->clk_get == RT_NULL ? gd32_sdio_clk_get : sdio_des->clk_get);
 
     rt_event_init(&sdio->event, "sdio", RT_IPC_FLAG_FIFO);
@@ -1037,7 +1043,7 @@ static struct rt_mmcsd_host *sdio_host_create(struct gd32_sdio_des *sdio_des)
     // set host defautl attributes
     host->ops = &ops;
     host->freq_min = 400 * 1000;
-    host->freq_max = SDIO_MAX_FREQ;
+    host->freq_max = sdio_config.sdio_max_freq;
     host->valid_ocr = VDD_32_33 | VDD_33_34;
 #ifndef SDIO_USING_1_BIT
     host->flags = MMCSD_BUSWIDTH_4 | MMCSD_MUTBLKWRITE | MMCSD_SUP_HIGHSPEED;
@@ -1068,74 +1074,76 @@ void SDIO_IRQHandler(void)
     rt_interrupt_leave();
 }
 
-/*!
-    \brief      configure the GPIO of SDIO interface
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-static void gpio_config(void)
+/**
+ * @brief SDIO MSP Initialization
+ *        This function configures the hardware resources used in this example:
+ *           - Peripheral's GPIO Configuration
+ *           - NVIC configuration for interrupt priority
+ *        This function belongs to weak function, users can rewrite this function according to different needs
+ *
+ * @param periph peripherals in gd32_sdio_config
+ * @return None
+ */
+rt_weak void gd32_msp_sdio_init (const uint32_t *periph)
 {
-    /* configure the SDIO_DAT0(PC8), SDIO_DAT1(PC9), SDIO_DAT2(PC10), SDIO_DAT3(PC11), SDIO_CLK(PC12) and SDIO_CMD(PD2) */
-    gpio_af_set(SDIO_CLK_PORT, GPIO_AF_12, SDIO_CLK_PIN);
-    gpio_af_set(SDIO_CMD_PORT, GPIO_AF_12, SDIO_CMD_PIN);
-    gpio_af_set(SDIO_D0_PORT,  GPIO_AF_12, SDIO_D0_PIN);
-    gpio_af_set(SDIO_D1_PORT,  GPIO_AF_12, SDIO_D1_PIN);
-    gpio_af_set(SDIO_D2_PORT,  GPIO_AF_12, SDIO_D2_PIN);
-    gpio_af_set(SDIO_D3_PORT,  GPIO_AF_12, SDIO_D3_PIN);
+    struct gd32_sdio_config *config = rt_container_of(periph, struct gd32_sdio_config, periph);
 
-    gpio_mode_set(SDIO_CLK_PORT, GPIO_MODE_AF, GPIO_PUPD_NONE, SDIO_CLK_PIN);
-    gpio_output_options_set(SDIO_CLK_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, SDIO_CLK_PIN);
+    /* configure gpio clock */
+    rcu_periph_clock_enable(config->clk_port_rcu);
+    rcu_periph_clock_enable(config->cmd_port_rcu);
+    rcu_periph_clock_enable(config->d0_port_rcu);
+    rcu_periph_clock_enable(config->d1_port_rcu);
+    rcu_periph_clock_enable(config->d2_port_rcu);
+    rcu_periph_clock_enable(config->d3_port_rcu);
 
-    gpio_mode_set(SDIO_CMD_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, SDIO_CMD_PIN);
-    gpio_output_options_set(SDIO_CMD_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, SDIO_CMD_PIN);
+    /* configure gpio */
+    gpio_af_set(config->ckl_port, config->alt_func_num, config->ckl_pin);
+    gpio_af_set(config->cmd_port, config->alt_func_num, config->cmd_pin);
+    gpio_af_set(config->d0_port,  config->alt_func_num, config->d0_pin);
+    gpio_af_set(config->d1_port,  config->alt_func_num, config->d1_pin);
+    gpio_af_set(config->d2_port,  config->alt_func_num, config->d2_pin);
+    gpio_af_set(config->d3_port,  config->alt_func_num, config->d3_pin);
 
-    gpio_mode_set(SDIO_D0_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, SDIO_D0_PIN);
-    gpio_output_options_set(SDIO_D0_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, SDIO_D0_PIN);
+    gpio_mode_set(config->ckl_port, GPIO_MODE_AF, GPIO_PUPD_NONE, config->ckl_pin);
+    gpio_output_options_set(config->ckl_port, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, config->ckl_pin);
 
-    gpio_mode_set(SDIO_D1_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, SDIO_D1_PIN);
-    gpio_output_options_set(SDIO_D1_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, SDIO_D1_PIN);
+    gpio_mode_set(config->cmd_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP, config->cmd_pin);
+    gpio_output_options_set(config->cmd_port, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, config->cmd_pin);
 
-    gpio_mode_set(SDIO_D2_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, SDIO_D2_PIN);
-    gpio_output_options_set(SDIO_D2_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, SDIO_D2_PIN);
+    gpio_mode_set(config->d0_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP, config->d0_pin);
+    gpio_output_options_set(config->d0_port, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, config->d0_pin);
 
-    gpio_mode_set(SDIO_D3_PORT, GPIO_MODE_AF, GPIO_PUPD_PULLUP, SDIO_D3_PIN);
-    gpio_output_options_set(SDIO_D3_PORT, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, SDIO_D3_PIN);
+    gpio_mode_set(config->d1_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP, config->d1_pin);
+    gpio_output_options_set(config->d1_port, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, config->d1_pin);
+
+    gpio_mode_set(config->d2_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP, config->d2_pin);
+    gpio_output_options_set(config->d2_port, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, config->d2_pin);
+
+    gpio_mode_set(config->d3_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP, config->d3_pin);
+    gpio_output_options_set(config->d3_port, GPIO_OTYPE_PP, GPIO_OSPEED_MAX, config->d3_pin);
+
+    /* configure the sdio interrupt */
+    NVIC_SetPriority(config->irqn, 0);
 }
 
-/*!
-    \brief      configure the RCU of SDIO and DMA
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-static void rcu_config(void)
+int gd32_sdio_init (void)
 {
-    rcu_periph_clock_enable(SDIO_GPIO_CLK);
-    rcu_periph_clock_enable(SDIO_GPIO_CMD);
-    rcu_periph_clock_enable(SDIO_GPIO_D0);
-    rcu_periph_clock_enable(SDIO_GPIO_D1);
-    rcu_periph_clock_enable(SDIO_GPIO_D2);
-    rcu_periph_clock_enable(SDIO_GPIO_D3);
+    struct gd32_sdio_des sdio_des = { 0 };
 
-    rcu_periph_clock_enable(SDIO_PERI_CLOCK);
-    rcu_periph_clock_enable(SDIO_DMA_CLOCK);
-}
+    gd32_msp_sdio_init(&sdio_config.periph);
 
-int gd32_sdio_init(void)
-{
-    struct gd32_sdio_des sdio_des;
-
-    /* configure the RCU and GPIO, deinitialize the SDIO */
-    rcu_config();
-    gpio_config();
+    /* deinit sdio */
     sdio_deinit();
 
     /* configure the sdio interrupt */
-    nvic_irq_enable(SDIO_IRQn, 0, 0);
+    NVIC_EnableIRQ(sdio_config.irqn);
+
+    /* enable sdio and dma clock */
+    rcu_periph_clock_enable(sdio_config.sdio_rcu);
+    rcu_periph_clock_enable(dma_config.rcu);
 
     /* Save the sdio peripheral address */
-    sdio_des.hw_sdio = SDIO_BASE;
+    sdio_des.hw_sdio = sdio_config.periph;
 
     /* Create mmcsd host for sdio */
     host = sdio_host_create(&sdio_des);
@@ -1162,86 +1170,30 @@ INIT_DEVICE_EXPORT(gd32_sdio_init);
 drv_sdio.h
 ```c
 /*
- * Copyright (c) 2006-2023, RT-Thread Development Team
+ * Copyright (c) 2006-2024, RT-Thread Development Team
  *
  * SPDX-License-Identifier: Apache-2.0
  *
  * Change Logs:
  * Date             Author          Notes
  * 2023-12-30       Evlers          first version
+ * 2024-03-20       Evlers          add driver configure
  */
 
 #ifndef __STM32_SDIO_H__
 #define __STM32_SDIO_H__
 
+#include <rthw.h>
+#include <rtthread.h>
 #include <board.h>
-
-#if defined SOC_SERIES_GD32F10x
-#include "gd32f10x_sdio.h"
-#include "gd32f10x_dma.h"
-#elif defined SOC_SERIES_GD32F20x
-#include "gd32f20x_sdio.h"
-#include "gd32f20x_dma.h"
-#elif defined SOC_SERIES_GD32F30x
-#include "gd32f30x_sdio.h"
-#include "gd32f30x_dma.h"
-#elif defined SOC_SERIES_GD32F4xx
-#include "gd32f4xx_sdio.h"
-#include "gd32f4xx_dma.h"
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define SDIO_PERI_CLOCK             RCU_SDIO
-#define SDIO_GPIO_CLK               RCU_GPIOC
-#define SDIO_GPIO_CMD               RCU_GPIOD
-#define SDIO_GPIO_D0                RCU_GPIOC
-#define SDIO_GPIO_D1                RCU_GPIOC
-#define SDIO_GPIO_D2                RCU_GPIOC
-#define SDIO_GPIO_D3                RCU_GPIOC
-
-#define SDIO_CLK_PORT               GPIOC
-#define SDIO_CLK_PIN                GPIO_PIN_12
-#define SDIO_CMD_PORT               GPIOD
-#define SDIO_CMD_PIN                GPIO_PIN_2
-#define SDIO_D0_PORT                GPIOC
-#define SDIO_D0_PIN                 GPIO_PIN_8
-#define SDIO_D1_PORT                GPIOC
-#define SDIO_D1_PIN                 GPIO_PIN_9
-#define SDIO_D2_PORT                GPIOC
-#define SDIO_D2_PIN                 GPIO_PIN_10
-#define SDIO_D3_PORT                GPIOC
-#define SDIO_D3_PIN                 GPIO_PIN_11
-
-#define SDIO_DMA                    DMA1
-#define SDIO_DMA_CLOCK              RCU_DMA1
-#define SDIO_DMA_CHANNEL            DMA_CH3
-#define SDIO_DMA_IRQ                DMA1_Channel3_IRQn
-#define SDIO_DMA_IRQ_HANDLER        DMA1_Channel3_IRQHandler
-#define SDIO_DMA_SUBPERI            DMA_SUBPERI4
-
-#ifndef SDIO_BASE_ADDRESS
-#define SDIO_BASE_ADDRESS           (SDIO_BASE)
-#endif
-
-#ifndef SDIO_CLOCK_FREQ
-#define SDIO_CLOCK_FREQ             (48U * 1000 * 1000)
-#endif
-
-#ifndef SDIO_BUFF_SIZE
-#define SDIO_BUFF_SIZE              (4096)
-#endif
-
 #ifndef SDIO_ALIGN
 #define SDIO_ALIGN                  (32)
 #endif
-
-#ifndef SDIO_MAX_FREQ
-#define SDIO_MAX_FREQ               (24 * 1000 * 1000)
-#endif
-
 
 #define HW_SDIO_ERRORS              (SDIO_INT_FLAG_CCRCERR | SDIO_INT_FLAG_CMDTMOUT | \
                                     SDIO_INT_FLAG_DTCRCERR | SDIO_INT_FLAG_DTTMOUT | \
@@ -1250,10 +1202,44 @@ extern "C" {
 
 #define HW_SDIO_DATATIMEOUT         (0xFFFFFFFFU)
 
-
-typedef void (*dma_txconfig)(uint32_t *src, uint32_t *dst, uint32_t size);
-typedef void (*dma_rxconfig)(uint32_t *src, uint32_t *dst, uint32_t size);
 typedef rt_uint32_t (*sdio_clk_get)(uint32_t hw_sdio);
+
+struct gd32_sdio_config
+{
+    uint32_t periph;
+    uint32_t sdio_clock_freq;
+    uint32_t sdio_max_freq;
+
+    rcu_periph_enum sdio_rcu;
+    IRQn_Type irqn;
+    rcu_periph_enum clk_port_rcu;
+    uint32_t ckl_port;
+    uint16_t ckl_pin;
+
+    rcu_periph_enum cmd_port_rcu;
+    uint32_t cmd_port;
+    uint16_t cmd_pin;
+
+    rcu_periph_enum d0_port_rcu;
+    uint32_t d0_port;
+    uint16_t d0_pin;
+
+    rcu_periph_enum d1_port_rcu;
+    uint32_t d1_port;
+    uint16_t d1_pin;
+
+    rcu_periph_enum d2_port_rcu;
+    uint32_t d2_port;
+    uint16_t d2_pin;
+
+    rcu_periph_enum d3_port_rcu;
+    uint32_t d3_port;
+    uint16_t d3_pin;
+
+#if defined SOC_SERIES_GD32F4xx
+    uint32_t alt_func_num;
+#endif
+};
 
 struct gd32_sdio_des
 {
