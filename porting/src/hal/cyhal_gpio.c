@@ -27,6 +27,7 @@
  * 2024-05-18   Evlers      add __builtin_clz to support the gcc compiler
  * 2024-05-22   Evlers      fix oob interrupt loss issue
  * 2024-05-28   Evlers      add assert to gpio external interrupt
+ * 2024-07-09   Evlers      modify the gpio interrupt callback parameter to provide an absolute event type
  */
 
 #include "cyhal_gpio.h"
@@ -161,11 +162,8 @@ static void gpio_interrupt(void *args)
 
     if ((pin_number < CYHAL_MAX_EXTI_NUMBER) && (info->enable))
     {
-        cyhal_gpio_irq_event_t event = (cyhal_gpio_read(info->pin) == true) ?
-                                   CYHAL_GPIO_IRQ_RISE : CYHAL_GPIO_IRQ_FALL;
-
         /* Call user's callback */
-        info->callback(info->callback_args, event);
+        info->callback(info->callback_args, info->event);
         info->tick = rt_tick_get();
     }
 }
