@@ -357,6 +357,7 @@ drv_sdio.c
  * 2024-03-20       Evlers          add driver configure
  * 2024-03-21       Evlers          add msp layer supports
  * 2024-06-28       Evlers          fix wild pointer in clk_get
+ * 2024-07-14       Evlers          fix an error caused by persistent set of the SDIO_STAT_RXRUN flag
  */
 
 #include <rthw.h>
@@ -730,7 +731,7 @@ static void rthw_sdio_send_command(struct rthw_sdio *sdio, struct sdio_pkg *pkg)
     {
         volatile rt_uint32_t count = SDIO_TX_RX_COMPLETE_TIMEOUT_LOOPS;
 
-        while (count && (SDIO_STAT & (SDIO_STAT_TXRUN | SDIO_STAT_RXRUN)))
+        while (count && (SDIO_STAT & SDIO_STAT_TXRUN))
         {
             count--;
         }
