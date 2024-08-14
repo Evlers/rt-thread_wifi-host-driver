@@ -28,6 +28,7 @@
  * 2024-05-22   Evlers      fix oob interrupt loss issue
  * 2024-05-28   Evlers      add assert to gpio external interrupt
  * 2024-07-09   Evlers      modify the gpio interrupt callback parameter to provide an absolute event type
+ * 2024-08-14   Evlers      add __CLZ to support the iar compiler
  */
 
 #include "cyhal_gpio.h"
@@ -40,10 +41,13 @@
 /* Return pin number by counts the number of leading zeros of a data value.
  * NOTE: __CLZ  returns  32 if no bits are set in the source register, and zero
  * if bit 31 is set. Parameter 'pin' should be in range GPIO_PIN0..GPIO_PIN15. */
-#ifdef __ARMCC_VERSION
+#if defined(__ARMCC_VERSION)
 #define CYHAL_GET_PIN_NUMBER(pin)   (uint32_t)(31u - __clz(pin))
-#else
+#elif defined(__GNUC__)
 #define CYHAL_GET_PIN_NUMBER(pin)   (uint32_t)(31u - __builtin_clz(pin))
+#elif defined(__ICCARM__)
+#include <intrinsics.h>
+#define CYHAL_GET_PIN_NUMBER(pin)   (uint32_t)(31u - __CLZ(pin))
 #endif
 
 typedef struct
