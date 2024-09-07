@@ -73,7 +73,7 @@ extern "C" {
 #endif
 
 #ifdef WHD_USING_CHIP_CYW43439
-#define CYHAL_SDIO_DRIVER_ID                            43439
+#define CYHAL_SDIO_DRIVER_ID                            43430
 #define CYHAL_SDIO_DRIVER_NAME                          "cyw43439"
 #endif
 

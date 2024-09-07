@@ -115,7 +115,7 @@ RT-Thread online packages  --->                                   # 在线软件
 | CYW43438  |   o    |   x   |   x   |
 | CYW4373   |   *    |   x   |   x   |
 | CYW43012  |   o    |   x   |   x   |
-| CYW43439  |   *    |   x   |   x   |
+| CYW43439  |   o    |   x   |   x   |
 | CYW43022  |   *    |   x   |   x   |
 
 'x' 表示不支持<br>
