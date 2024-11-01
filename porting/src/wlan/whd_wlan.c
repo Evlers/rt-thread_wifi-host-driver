@@ -595,6 +595,12 @@ static void whd_init_thread (void *parameter)
         return;
     }
 
+#ifdef WHD_RESOURCES_IN_EXTERNAL_STORAGE_FS
+    LOG_D("Wait mounting the external storage of file system..");
+    extern void whd_wait_fs_mount (void);
+    whd_wait_fs_mount();
+#endif
+
     /* Switch on Wifi, download firmware and create a primary interface, returns whd_interface_t */
     if (whd_wifi_on(whd_driver, &wifi_sta.whd_itf) != WHD_SUCCESS)
     {

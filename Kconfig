@@ -33,19 +33,43 @@ menuconfig PKG_USING_WIFI_HOST_DRIVER
         endchoice
 
         menuconfig WHD_RESOURCES_IN_EXTERNAL_STORAGE
-            bool "Using resources in external storage(FAL)"
-            select RT_USING_FAL
+            bool "Using resources in external storage"
             default n
 
             if WHD_RESOURCES_IN_EXTERNAL_STORAGE
 
-                config WHD_RESOURCES_FIRMWARE_NAME
-                    string "Set the partition name of the firmware files"
-                    default "whd_firmware"
+                choice
+                    prompt "Select external storage type"
+                    default WHD_RESOURCES_IN_EXTERNAL_STORAGE_FAL
 
-                config WHD_RESOURCES_CLM_NAME
-                    string "Set the partition name of the clm files"
-                    default "whd_clm"
+                    config WHD_RESOURCES_IN_EXTERNAL_STORAGE_FS
+                        bool "posix file system"
+                        select RT_USING_POSIX_FS
+
+                    config WHD_RESOURCES_IN_EXTERNAL_STORAGE_FAL
+                        bool "flash abstraction layer(FAL)"
+                        select RT_USING_FAL
+                endchoice
+
+                if WHD_RESOURCES_IN_EXTERNAL_STORAGE_FS
+                    config WHD_RESOURCES_FIRMWARE_PATH_NAME
+                        string "Set the file path of the firmware files"
+                        default "/sdcard/43438A1.bin"
+
+                    config WHD_RESOURCES_CLM_PATH_NAME
+                        string "Set the file path of the clm files"
+                        default "/sdcard/43438A1.clm_blob"
+                endif
+
+                if WHD_RESOURCES_IN_EXTERNAL_STORAGE_FAL
+                    config WHD_RESOURCES_FIRMWARE_PART_NAME
+                        string "Set the partition name of the firmware files"
+                        default "whd_firmware"
+
+                    config WHD_RESOURCES_CLM_PART_NAME
+                        string "Set the partition name of the clm files"
+                        default "whd_clm"
+                endif
 
                 config WHD_RESOURCES_BLOCK_SIZE
                     int "Set the block size for resources"
@@ -139,5 +163,3 @@ menuconfig PKG_USING_WIFI_HOST_DRIVER
         endif
 
     endif
-
-    

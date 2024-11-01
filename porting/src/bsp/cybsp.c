@@ -53,3 +53,10 @@ static int cybsp_init(void)
     return RT_EOK;
 }
 INIT_PREV_EXPORT(cybsp_init);
+
+rt_weak void whd_wait_fs_mount (void)
+{
+    /* Implement a function that waits for the file system to mount.
+     * Example: rt_sem_take(fs_mount_sem, RT_WAITING_FOREVER);
+     */
+}

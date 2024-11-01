@@ -24,7 +24,7 @@ RT-Thread online packages  --->                         # 在线软件包
 ```
 --- Wifi-Host-Driver(WHD) for RT-Thread
       Select Chips (CYW43438)  --->                     # 选择相应的芯片
-[*]   Using resources in external storage(FAL)  --->    # 使用FAL组件加载资源
+[*]   Using resources in external storage  --->         # 使用文件系统或FAL组件加载资源
 [ ]   Using custom nvram files                          # 使用自定义nvram头文件
 [ ]   Default enable powersave mode                     # 默认启用低功耗模式
 (8)   The priority level value of WHD thread            # 配置WHD线程的优先级
@@ -37,7 +37,8 @@ RT-Thread online packages  --->                         # 在线软件包
 [ ]   Using thread initialization                       # 创建一个线程来初始化驱动
 ```
 
-- 使用FAL组件加载资源文件时，FAL组件会自动选中，用户必须将WiFi模组用到的`firmware`和`clm`文件传输到`FAL`对应分区。
+- 使用外部储存加载资源文件时，文件系统或者FAL组件会自动选中，用户必须将WiFi模组用到的`firmware`和`clm`文件传输到对应路径或`FAL`分区。
+- 为了更快地启动速度，提供了一个可以用于等待文件系统装载的函数(whd_wait_fs_mount)，用户可重写该弱函数等待文件系统装载的信号量后再加载资源文件。
 - 使用自定义`nvram`文件时，用户需要自行编写`wifi_nvram_image.h`文件，并包含该头文件路径，可参考`WHD`自带的[wifi_nvram_image.h](./wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43012/COMPONENT_CYSBSYS-RP01/wifi_nvram_image.h)文件。
 - 默认启用低功耗模式时，模组会在空闲的时候进入节能模式，这会导致唤醒模组时`SDIO`驱动打印超时的日志，这是属于正常现象。
 
