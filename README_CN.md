@@ -123,14 +123,26 @@ RT-Thread online packages  --->                                   # 在线软件
 'o' 表示已测试和支持<br>
 '*' 理论上支持，但未经过测试
 
-### 更多信息
-* [Wi-Fi Host Driver API Reference Manual and Porting Guide](https://infineon.github.io/wifi-host-driver/html/index.html)
-* [Wi-Fi Host Driver Release Notes](./wifi-host-driver/RELEASE.md)
-* [Infineon Technologies](http://www.infineon.com)
+### 模组选择
+该项目使用`新联鑫威(杭州)科技有限公司`的英飞凌模组进行测试，以下是模组型号和对应的芯片型号：
+| **模组型号** | **芯片型号** |
+| ------------ | ------------ |
+| CYWL6208     | CYW43438     |
+| CYWL6312     | CYW43012     |
+| CYWL6209     | CYW43439     |
+| CYWL6373     | CYW4373      |
+
+如需模组测试可到[新联鑫威淘宝](https://m.tb.cn/h.6ZgYzwpJFecDrhN)购买。<br>
+这家有TF卡转接板，可以很方便的插到开发板的TF卡槽进行测试。
 
 ### 联系方式&支持
 - 邮箱: 1425295900@qq.com
 - 微信：Evlers
 - 如果驱动上有什么问题欢迎提交PR或者联系我一起交流
 - 如果你觉得这个项目不错，并且能够满足您的需求，请打赏打赏我吧~ 感谢支持！！<br>
-![wechat](./docs/images/qrcode.png)
+<img src="docs/images/qrcode.png" alt="image1" style="zoom:50%;" />
+
+### 更多信息
+* [Wi-Fi Host Driver API Reference Manual and Porting Guide](https://infineon.github.io/wifi-host-driver/html/index.html)
+* [Wi-Fi Host Driver Release Notes](./wifi-host-driver/RELEASE.md)
+* [Infineon Technologies](http://www.infineon.com)

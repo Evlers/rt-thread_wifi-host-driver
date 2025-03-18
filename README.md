@@ -123,14 +123,27 @@ RT-Thread online packages  --->                                   # Online softw
 'o' indicates tested and supported<br>
 '*' means theoretically supported, but not tested
 
-### More information
-* [Wi-Fi Host Driver API Reference Manual and Porting Guide](https://infineon.github.io/wifi-host-driver/html/index.html)
-* [Wi-Fi Host Driver Release Notes](./wifi-host-driver/RELEASE.md)
-* [Infineon Technologies](http://www.infineon.com)
+### Module selection
+The project uses modules from `Xinlian Xinwei (Hangzhou) Technology Co., Ltd` for testing.<br>
+The module models and corresponding chip models are as follows:
+| **Module type** | **Chip type** |
+| ------------ | ------------ |
+| CYWL6208     | CYW43438     |
+| CYWL6312     | CYW43012     |
+| CYWL6209     | CYW43439     |
+| CYWL6373     | CYW4373      |
+
+If you need module testing, you can buy it from [Xinlian Xinwei Taobao](https://m.tb.cn/h.6ZgYzwpJFecDrhN).<br>
+This TF card adapter board can be easily inserted into the TF card slot of the development board for testing.
 
 ### Contact & Suppor
 - mail: 1425295900@qq.com
 - WeChat: Evlers
 - If there is any problem on the driver, welcome to submit PR or contact me to communicate with you.
 - If you think this project is good and can meet your needs, please tip me~ Thank you for your support!<br>
-![wechat](./docs/images/qrcode.png)
+<img src="docs/images/qrcode.png" alt="image1" style="zoom:50%;" />
+
+### More information
+* [Wi-Fi Host Driver API Reference Manual and Porting Guide](https://infineon.github.io/wifi-host-driver/html/index.html)
+* [Wi-Fi Host Driver Release Notes](./wifi-host-driver/RELEASE.md)
+* [Infineon Technologies](http://www.infineon.com)
