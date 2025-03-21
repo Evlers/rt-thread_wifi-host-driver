@@ -29,7 +29,6 @@ menuconfig RT_USING_WIFI_HOST_DRIVER
 
             config WHD_USING_CHIP_CYW4343W
                 bool "CYW4343W"
-
         endchoice
 
         menuconfig WHD_RESOURCES_IN_EXTERNAL_STORAGE
@@ -161,5 +160,25 @@ menuconfig RT_USING_WIFI_HOST_DRIVER
                 range 0 8192
                 default 2048
         endif
+
+        choice
+            prompt "Select the log level"
+            default CY_WIFI_LOG_LEVEL_INFO
+
+            config CY_WIFI_LOG_LEVEL_NONE
+                bool "None"
+
+            config CY_WIFI_LOG_LEVEL_ERROR
+                bool "Error"
+
+            config CY_WIFI_LOG_LEVEL_INFO
+                bool "Info"
+
+            config CY_WIFI_LOG_LEVEL_DEBUG
+                bool "Debug"
+
+            config CY_WIFI_LOG_LEVEL_DATA_TRACE
+                bool "Data Trace"
+        endchoice
 
     endif

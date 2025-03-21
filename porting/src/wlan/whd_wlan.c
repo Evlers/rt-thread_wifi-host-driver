@@ -582,8 +582,10 @@ static void whd_init_thread (void *parameter)
     rt_sem_delete(cyhal_sdio.probe);
 
     /* Initialize WiFi Host Drivers (WHD) */
-    rt_kprintf("RT-Thread WiFi Host Drivers (WHD)\n");
-    rt_kprintf("You can get the latest version on https://github.com/Evlers/rt-thread_wifi-host-driver\n");
+#ifdef WPRINT_ENABLE_WHD_INFO
+    WPRINT_MACRO( ("RT-Thread WiFi Host Drivers (WHD)\n") );
+    WPRINT_MACRO( ("You can get the latest version on https://github.com/Evlers/rt-thread_wifi-host-driver\n") );
+#endif /* WPRINT_ENABLE_WHD_INFO */
 
     /* Initialize WiFi host drivers */
     whd_init(&whd_driver, &whd_config, &resource_ops, &whd_buffer_ops, &netif_if_ops);
