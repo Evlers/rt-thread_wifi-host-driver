@@ -539,6 +539,13 @@ static void register_whd_events (void)
     }
 }
 
+rt_weak void whd_bt_startup (void)
+{
+    /* The callback indicates that the hci interface is ready.
+     * The user rewrites this function to initialize or configure the Bluetooth protocol stack.
+     */
+}
+
 static void whd_init_thread (void *parameter)
 {
     static struct rt_wlan_device wlan_ap, wlan_sta;
@@ -609,6 +616,9 @@ static void whd_init_thread (void *parameter)
         LOG_E("Unable to start the WiFi module!");
         return;
     }
+
+    /* Bluetooth startup */
+    whd_bt_startup();
 
 #ifdef CY_WIFI_DEFAULT_ENABLE_POWERSAVE_MODE
     uint32_t value = 0;
