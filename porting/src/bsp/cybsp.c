@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 Evlers
+ * Copyright (c) 2024-2025 Evlers
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
  * 2024-05-17   Evlers      fixed an bug where a module could not be reset
  * 2024-05-28   Evlers      add support for pin names
  * 2024-06-05   Evlers      remove the unused header file drv gpio.h
+ * 2025-04-09   HPMicro     fixed the incomplete reset issue
  */
 
 #include "rtthread.h"
@@ -49,6 +50,7 @@ static int cybsp_init(void)
     rt_pin_write(pin_number, PIN_LOW);
     rt_thread_mdelay(2);
     rt_pin_write(pin_number, PIN_HIGH);
+    rt_thread_mdelay(10); /* wait for the module to be ready */
 
     return RT_EOK;
 }
