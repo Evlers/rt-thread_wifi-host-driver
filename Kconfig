@@ -1,6 +1,6 @@
 # MIT License
 
-# Copyright (c) 2024 Evlers
+# Copyright (c) 2025 Evlers
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -184,7 +184,7 @@ menuconfig RT_USING_WIFI_HOST_DRIVER
 
         choice
             prompt "Select the log level"
-            default CY_WIFI_LOG_LEVEL_INFO
+            default CY_WIFI_LOG_LEVEL_ERROR
 
             config CY_WIFI_LOG_LEVEL_NONE
                 bool "None"
