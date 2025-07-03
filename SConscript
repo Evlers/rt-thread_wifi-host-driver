@@ -104,6 +104,7 @@ CPPDEFINES = ['']
 
 # RT_USING_WIFI_HOST_DRIVER or PKG_USING_WIFI_HOST_DRIVER
 group = DefineGroup('whd', src, depend = ['RT_USING_WIFI_HOST_DRIVER'], CPPPATH = path, CPPDEFINES = CPPDEFINES)
-group = DefineGroup('whd', src, depend = ['PKG_USING_WIFI_HOST_DRIVER'], CPPPATH = path, CPPDEFINES = CPPDEFINES)
+if GetDepend(['PKG_USING_WIFI_HOST_DRIVER']):
+    group = DefineGroup('whd', src, depend = ['PKG_USING_WIFI_HOST_DRIVER'], CPPPATH = path, CPPDEFINES = CPPDEFINES)
 
 Return('group')
