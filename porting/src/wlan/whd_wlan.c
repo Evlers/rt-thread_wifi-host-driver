@@ -49,6 +49,9 @@
 #define DBG_LVL           DBG_INFO
 #include "rtdbg.h"
 
+#ifdef WHD_SET_COUNTRY_FROM_HOST
+RT_STATIC_ASSERT(WHD_COUNTRY_CODE_must_be_2_characters_string, (sizeof(WHD_COUNTRY_CODE) == 3));
+#endif /* WHD_SET_COUNTRY_FROM_HOST */
 
 /* WHD interface */
 static whd_driver_t whd_driver;
@@ -57,11 +60,14 @@ static whd_init_config_t whd_config =
 {
     .thread_priority = CY_WIFI_WHD_THREAD_PRIORITY,
     .thread_stack_size = CY_WIFI_WHD_THREAD_STACK_SIZE,
-    .country = WHD_COUNTRY_CHINA,
+#ifndef WHD_SET_COUNTRY_FROM_HOST
+    .country = WHD_COUNTRY_AUSTRALIA,
+#else
+    .country = (whd_country_code_t)MK_CNTRY((const uint8_t)WHD_COUNTRY_CODE[0], (const uint8_t)WHD_COUNTRY_CODE[1], (uint16_t)WHD_COUNTRY_CODE_REVISION),
+#endif /* WHD_SET_COUNTRY_FROM_HOST */
 };
 extern whd_resource_source_t resource_ops;
 extern struct whd_buffer_funcs whd_buffer_ops;
-
 
 struct whd_scan
 {
@@ -557,7 +563,11 @@ static void whd_init_thread (void *parameter)
         .host_oob_pin      = rt_pin_get(CYBSP_HOST_WAKE_IRQ_PIN_NAME),
 #endif
         .dev_gpio_sel      = 0,
-        .is_falling_edge   = (CYBSP_HOST_WAKE_IRQ_EVENT == CYHAL_GPIO_IRQ_FALL) ? WHD_TRUE : WHD_FALSE,
+#ifdef CYBSP_HOST_WAKE_IRQ_EVENT_FALL
+        .is_falling_edge   = WHD_TRUE,
+#else
+        .is_falling_edge   = WHD_FALSE,
+#endif
         .intr_priority     = CYBSP_OOB_INTR_PRIORITY
     };
     whd_sdio_config_t whd_sdio_config =

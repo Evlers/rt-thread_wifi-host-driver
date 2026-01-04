@@ -55,6 +55,60 @@ extern "C" {
  * \{
  */
 
+#ifdef WHD_USING_CHIP_CYW4343W
+#define CYHAL_SDIO_MANUFACTURER                         0x02D0
+#define CYHAL_SDIO_DRIVER_ID                            43430
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw4343W"
+#endif
+
+#ifdef WHD_USING_CHIP_CYW43438
+#define CYHAL_SDIO_MANUFACTURER                         0x02D0
+#define CYHAL_SDIO_DRIVER_ID                            43430
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw43438"
+#endif
+
+#ifdef WHD_USING_CHIP_CYW4373
+#define CYHAL_SDIO_MANUFACTURER                         0x02D0
+#define CYHAL_SDIO_DRIVER_ID                            0x4373
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw4373"
+#endif
+
+#ifdef WHD_USING_CHIP_CYW43012
+#define CYHAL_SDIO_MANUFACTURER                         0x02D0
+#define CYHAL_SDIO_DRIVER_ID                            43012
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw43012"
+#endif
+
+#ifdef WHD_USING_CHIP_CYW43439
+#define CYHAL_SDIO_MANUFACTURER                         0x02D0
+#define CYHAL_SDIO_DRIVER_ID                            43430
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw43439"
+#endif
+
+#ifdef WHD_USING_CHIP_CYW43022
+#define CYHAL_SDIO_MANUFACTURER                         0x02D0
+#define CYHAL_SDIO_DRIVER_ID                            43022
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw43022"
+#endif
+
+#ifdef WHD_USING_CHIP_CYW55500
+#define CYHAL_SDIO_MANUFACTURER                         0x04B4
+#define CYHAL_SDIO_DRIVER_ID                            48446
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw55500"
+#endif
+
+#ifdef WHD_USING_CHIP_CYW55900
+#define CYHAL_SDIO_MANUFACTURER                         0x04B4
+#define CYHAL_SDIO_DRIVER_ID                            55900
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw55900"
+#endif
+
+#ifdef WHD_USING_CHIP_CYW55572
+#define CYHAL_SDIO_MANUFACTURER                         0x04B4
+#define CYHAL_SDIO_DRIVER_ID                            55572
+#define CYHAL_SDIO_DRIVER_NAME                          "cyw55572"
+#endif
+
 #define CYHAL_SDIO_RET_NO_ERRORS           (0x00)     /**< No error*/
 #define CYHAL_SDIO_RET_NO_SP_ERRORS        (0x01)     /**< Non-specific error code*/
 #define CYHAL_SDIO_RET_CMD_CRC_ERROR       (0x02)     /**< There was a CRC error on the Command/Response*/

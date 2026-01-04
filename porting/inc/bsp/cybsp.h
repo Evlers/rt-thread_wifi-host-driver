@@ -33,72 +33,7 @@
 extern "C" {
 #endif
 
-#define WHD_USE_CUSTOM_MALLOC_IMPL
-
-#ifdef CY_WIFI_LOG_LEVEL_INFO
-#define WPRINT_ENABLE_WHD_INFO
-#endif
-
-#ifdef CY_WIFI_LOG_LEVEL_DEBUG
-#define WPRINT_ENABLE_WHD_INFO
-#define WPRINT_ENABLE_WHD_DEBUG
-#endif
-
-#ifdef CY_WIFI_LOG_LEVEL_DATA_TRACE
-#define WPRINT_ENABLE_WHD_INFO
-#define WPRINT_ENABLE_WHD_DEBUG
-#define WPRINT_ENABLE_WHD_DATA_LOG
-#endif
-
-#ifdef CY_WIFI_LOG_LEVEL_NONE
-#define WHD_PRINT_DISABLE
-#endif
-
-#ifdef CYBSP_HOST_WAKE_IRQ_EVENT_FALL
-#define CYBSP_HOST_WAKE_IRQ_EVENT                       CYHAL_GPIO_IRQ_FALL
-#endif
-
-#ifdef CYBSP_HOST_WAKE_IRQ_EVENT_RISE
-#define CYBSP_HOST_WAKE_IRQ_EVENT                       CYHAL_GPIO_IRQ_RISE
-#endif
-
-#ifdef CYBSP_HOST_WAKE_IRQ_EVENT_BOTH
-#define CYBSP_HOST_WAKE_IRQ_EVENT                       CYHAL_GPIO_IRQ_BOTH
-#endif
-
-
 #define CYBSP_WIFI_INTERFACE_TYPE                       CYBSP_SDIO_INTERFACE
-#define CYHAL_SDIO_MANUFACTURER                         0x02D0
-
-#ifdef WHD_USING_CHIP_CYW4343W
-#define CYHAL_SDIO_DRIVER_ID                            43430
-#define CYHAL_SDIO_DRIVER_NAME                          "cyw4343W"
-#endif
-
-#ifdef WHD_USING_CHIP_CYW43438
-#define CYHAL_SDIO_DRIVER_ID                            43430
-#define CYHAL_SDIO_DRIVER_NAME                          "cyw43438"
-#endif
-
-#ifdef WHD_USING_CHIP_CYW4373
-#define CYHAL_SDIO_DRIVER_ID                            0x4373
-#define CYHAL_SDIO_DRIVER_NAME                          "cyw4373"
-#endif
-
-#ifdef WHD_USING_CHIP_CYW43012
-#define CYHAL_SDIO_DRIVER_ID                            43012
-#define CYHAL_SDIO_DRIVER_NAME                          "cyw43012"
-#endif
-
-#ifdef WHD_USING_CHIP_CYW43439
-#define CYHAL_SDIO_DRIVER_ID                            43430
-#define CYHAL_SDIO_DRIVER_NAME                          "cyw43439"
-#endif
-
-#ifdef WHD_USING_CHIP_CYW43022
-#define CYHAL_SDIO_DRIVER_ID                            43022
-#define CYHAL_SDIO_DRIVER_NAME                          "cyw43022"
-#endif
 
 #ifdef __cplusplus
 }

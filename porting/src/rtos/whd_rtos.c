@@ -234,8 +234,19 @@ cy_rslt_t cy_rtos_delay_milliseconds(cy_time_t num_ms)
     return CY_RSLT_SUCCESS;
 }
 
-
 #ifdef WHD_USE_CUSTOM_MALLOC_IMPL
+
+/* Use the system's built-in memory copy, set, allocation and free */
+void whd_mem_memcpy (void *dest, const void *src, size_t len)
+{
+    rt_memcpy(dest, src, len);
+}
+
+void whd_mem_memset (void *buf, int val, size_t len)
+{
+    rt_memset(buf, val, len);
+}
+
 /* Use the system's built-in memory allocation */
 void *whd_mem_malloc (size_t size)
 {
@@ -252,5 +263,4 @@ void whd_mem_free(void *ptr)
     rt_free(ptr);
 }
 
-#endif /* ifndef WHD_USE_CUSTOM_MALLOC_IMPL */
-
+#endif /* WHD_USE_CUSTOM_MALLOC_IMPL */

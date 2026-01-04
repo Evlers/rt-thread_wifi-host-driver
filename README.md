@@ -11,6 +11,14 @@ The [release notes](./wifi-host-driver/RELEASE.md) detail the current release. Y
 The repository has adapted WHD to the RT-Thread system, currently only supports the SDIO bus protocol, and uses the mmcsd of RT-Thread for sdio bus operations.<br>
 Welcome everyone `PR` to support more bus interface and chips.
 
+### Porting layout
+- [porting/inc](porting/inc) holds the minimal public headers mirrored from Infineon's BSP/HAL so that WHD can be built without pulling the whole ModusToolbox SDK.
+- [porting/src/bsp](porting/src/bsp) wires REG_ON, HOST_WAKE and SDIO resources (see [porting/src/bsp/whd_bsp.c](porting/src/bsp/whd_bsp.c)) and exposes the helper network-buffer glue in [porting/src/bsp/whd_network_buffer.c](porting/src/bsp/whd_network_buffer.c).
+- [porting/src/hal](porting/src/hal) provides the `cyhal_*` implementations for GPIO and SDIO so the upstream WHD HAL calls map directly onto RT-Thread drivers.
+- [porting/src/rtos/whd_rtos.c](porting/src/rtos/whd_rtos.c) adapts the cyabs RTOS abstraction to native RT-Thread mutexes, semaphores, threads and timers.
+- [porting/src/resources](porting/src/resources) contains the runtime loader (`resources.c`) and the `whd_res_download` CLI implementation (`download.c`).
+- [porting/src/wlan/whd_wlan.c](porting/src/wlan/whd_wlan.c) registers the driver with RT-Thread's Wi-Fi stack and is the main entry point that honors the `WHD_PORTING_*` Kconfig switches.
+
 ### Using
 **In the package, select `Wifi-Host-Driver(WHD) for RT-Thread`**
 ```
@@ -22,24 +30,64 @@ RT-Thread online packages  --->                         # Online software packag
 ### Package configuration
 ```
 --- Wifi-Host-Driver(WHD) for RT-Thread
-      Select Chips (CYW43438)  --->                     # Select the corresponding chip
-[*]   Using resources in external storage  --->         # Using the FS/FAL to load the resource
-[ ]   Using custom nvram files                          # Use custom nvram header files
-[ ]   Default enable powersave mode                     # The low power mode is selected by default
-(8)   The priority level value of WHD thread            # Configure the priority of the WHD thread
-(5120) The stack size for WHD thread                    # Configure the stack size of the WHD thread
-      Select the pin name or number (Number)  --->      # Select a pin name or pin number
-(-1)  Set the WiFi_REG ON pin number                    # Set the WiFi_REG ON pin of the module
-(-1)  Set the HOST_WAKE_IRQ pin number                  # Set the HOST_WAKE_IRQ pin of the module
-      Select HOST_WAKE_IRQ event type (falling)  --->   # Select the edge of Wake up host
-(2)   Set the interrput priority for HOST_WAKE_IRQ pin  # Set the external interrupt priority
-[ ]   Using thread initialization                       # Create a thread to initialize the driver
+    --- WHD Configuration
+        [*] Set country code from host
+            (AU) Set the default country code
+            (0)  Set the default country code revision
+        [ ] Default enable powersave mode
+            (200) Set return to sleep delay.(PM2)
+        [ ] Using thread initialization
+            (10) The priority level value of init thread
+            (2048) The stack size for init thread
+        --- WHD Thread Configuration
+            (8)   The priority level value of WHD thread
+            (5120) The stack size for WHD thread
+        --- WHD Resources Configuration
+            ( ) File System
+                (/sdcard/whd/43438A1.bin) Set the file path of the firmware files
+                (/sdcard/whd/43438A1.clm_blob) Set the file path of the clm files
+                (/sdcard/whd/nvram.txt) Set the file path of the nvram files
+            (X) Flash Abstraction Layer(FAL)
+                ("whd_firmware") Set the partition name of the firmware files
+                ("whd_clm") Set the partition name of the clm files
+                ("whd_nvram") Set the partition name of the nvram files
+            (1024) Set the block size for resources
+    --- Hardware Configuration
+        (X) CYW43438
+        ( ) CYW4373
+        ( ) CYW43012
+        ( ) CYW43439
+        ( ) CYW43022
+        ( ) CYW4343W
+        ( ) CYW55500
+        ( ) CYW55572
+        --- Pin Configuration
+            (Number) Select the pin name or number  --->
+                (-1) Set the WiFi_REG ON pin number
+                (-1) Set the HOST_WAKE_IRQ pin number
+            (falling) Select HOST_WAKE_IRQ event type  --->
+            (2) Set the interrupt priority for HOST_WAKE_IRQ pin
+    --- Porting options
+        [*] Using BSP porting
+        [*] Using HAL porting
+        [*] Using RTOS porting
+        [*] Using the malloc/free of RT-Thread
+    --- WHD log level
+        (Error) Select the log level
 ```
+- `WHD_SET_COUNTRY_FROM_HOST` together with `WHD_COUNTRY_CODE`/`WHD_COUNTRY_CODE_REVISION` lets the host push the regulatory table that matches your deployment without rebuilding the firmware blob.
+- `CY_WIFI_DEFAULT_ENABLE_POWERSAVE_MODE`, `CY_WIFI_DEFAULT_PM2_SLEEP_RET_TIME`, `CY_WIFI_USING_THREAD_INIT`, `CY_WIFI_INIT_THREAD_PRIORITY/STACK_SIZE` and the WHD thread menu let you pick the startup model that best matches your BSP scheduling limits.
+- The resource menu replaces the old "external storage" toggle: select file paths when you boot from a filesystem, or select FAL partitions when you store the blobs in flash. `WHD_RESOURCES_BLOCK_SIZE` controls the read buffer size, and you can still override the weak `whd_wait_fs_mount()` in [porting/src/resources/resources.c](porting/src/resources/resources.c) if your filesystem needs extra time to get ready.
+- `WHD_PORTING_BSP`, `WHD_PORTING_HAL`, `WHD_PORTING_RTOS` and `WHD_USE_CUSTOM_MALLOC_IMPL` map directly onto the code inside the [porting](porting) tree. Leave them enabled for the RT-Thread glue, or turn off the relevant switch when you must link against Infineon's original BSP/HAL/RTOS libraries.
+- The log level selector wires up the WHD `WPRINT` macros so you can promote errors only, enable info/debug prints, or capture data traces while diagnosing SDIO traffic.
 
-- When using the external storage to load a resource file, file system or FAL component is automatically selected, user must transfer the `firmware` and `clm` files used by the WiFi module to the corresponding path or FAL partition.
-- For faster startup, a function that can be used to wait for the file system to mount (whd_wait_fs_mount) is provided, user can rewrite the weak function to wait for the file system to mount the semaphore before loading the resource file.
-- When using a custom `nvram` file, users need to write their own `wifi_nvram_image.h` file and include the header file path, refer to the [wifi_nvram_image.h](./wifi-host-driver/WiFi_Host_Driver/resources/nvram/COMPONENT_43012/COMPONENT_CYSBSYS-RP01/wifi_nvram_image.h) file that comes with `WHD`.
-- When using the default enable powersave mode, the module will enter the energy saving mode when idle, which will cause the `SDIO` driver to print a timeout log when the module is woken up. This is a normal phenomenon.
+Recent WHD drops may ship without the regulatory `*.clm_blob` files or the board-specific `nvram.txt` snippets inside [wifi-host-driver/WHD/COMPONENT_WIFI5/resources](wifi-host-driver/WHD/COMPONENT_WIFI5/resources) and [wifi-host-driver/WHD/COMPONENT_WIFI6/resources](wifi-host-driver/WHD/COMPONENT_WIFI6/resources). If they are missing, request the firmware+NVRAM bundle from your module vendor to ensure you stay aligned with the certified radio profile.
+
+`WHD_RESOURCES_IN_EXTERNAL_STORAGE_FS` enables loading every blob directly from a filesystem (SD card, SPI flash FS, USB mass storage, etc.). Just keep the configured paths (for example `/sdcard/whd/43438A1.bin`, `/sdcard/whd/43438A1.clm_blob`, `/sdcard/whd/nvram.txt`) accessible before WHD starts and there is no need to repartition on-chip flash. Make sure `whd_wait_fs_mount()` (provided as a weak symbol in [porting/src/resources/resources.c](porting/src/resources/resources.c)) blocks until the filesystem is mounted, or reorder your startup sequence so the filesystem driver finishes initialization before WHD tries to open the files.
+
+When you keep the resource files on a filesystem, copy the matching `*.bin`, `*.clm_blob` and `nvram.txt` into the paths configured above. When you use FAL, make sure the named partitions exist and write the blobs once with the `whd_res_download` command.
+
+The pin configuration menu also allows setting logical pin names (such as "PA.0") instead of numbers when your BSP exposes them, and the HOST_WAKE IRQ trigger can be switched between falling/rising/both edges to fit your module design.
 
 **Note**<br>
 sdio driver needs to support stream transfer. In the bsp of RT-Thread, most chips do not have the function of adapting stream transfer. <br>
@@ -64,27 +112,29 @@ hw_sdio->idmatrlr = SDMMC_IDMA_IDMAEN;
 ### Resource download
 You can download resource files in ymodem mode. The resource files use the FAL component.<br>
 The resource download function depends on the ymodem components.<br>
-Make sure that `RT_USING_RYM` and `WHD_RESOURCES_IN_EXTERNAL_STORAGE` definitions are turned on.
+Make sure that `RT_USING_RYM` is enabled and that `WHD_RESOURCES_IN_EXTERNAL_STORAGE_FAL` is selected so the resources are read from flash partitions.
 - Run the "whd_res_download" command on the terminal to download the resources.
 - This command requires you to enter the partition name of the resource file.
 - For example resource download(Use the default partition name, Enter your own partition name):
-```shell
-# For example, my partition configuration
+```c
 /* partition table */
 /*      magic_word          partition name      flash name          offset          size            reserved        */
 #define FAL_PART_TABLE                                                                                              \
 {                                                                                                                   \
-    { FAL_PART_MAGIC_WORD,  "whd_firmware",     "onchip_flash",     0,              448 * 1024,         0 },        \
-    { FAL_PART_MAGIC_WORD,  "whd_clm",          "onchip_flash",     448 * 1024,     32 * 1024,          0 },        \
-    { FAL_PART_MAGIC_WORD,  "easyflash",        "onchip_flash",     480 * 1024,     32 * 1024,          0 },        \
-    { FAL_PART_MAGIC_WORD,  "filesystem",       "onchip_flash",     512 * 1024,     512 * 1024,         0 },        \
+    { FAL_PART_MAGIC_WORD,  "whd_firmware",     "onchip_flash",              0,     512 * 1024,         0 },        \
+    { FAL_PART_MAGIC_WORD,  "whd_clm",          "onchip_flash",     512 * 1024,      32 * 1024,         0 },        \
+    { FAL_PART_MAGIC_WORD,  "whd_nvram",        "onchip_flash",     544 * 1024,      32 * 1024,         0 },        \
 }
-
+```
+```shell
 # Download firmware files
 whd_res_download whd_firmware
 
 # Download clm files
 whd_res_download whd_clm
+
+# Download nvram files
+whd_res_download whd_nvram
 ```
 - The ymodem tool can use xshell, after completing the command input, wait for xshell to initiate the file transfer.
 ```
@@ -92,12 +142,14 @@ msh >whd_res_download whd_firmware
 Please select the whd_firmware file and use Ymodem to send.
 ```
 - At this point, right-click the mouse in xshell and select "file transfer" to "using ymodem send".
-- In the `resources(wifi-host-driver/WiFi_Host_Driver/resources)` directory of `whd`, select the resource file for the corresponding chip.
+- In the [wifi-host-driver/WHD/COMPONENT_WIFI5/resources](wifi-host-driver/WHD/COMPONENT_WIFI5/resources) directory (depending on the chip you chose in menuconfig), select the matching firmware, clm, and nvram files.
+- `CYW55500` and `CYW55572` use the Wi-Fi 6 resource blobs located under [wifi-host-driver/WHD/COMPONENT_WIFI6/resources](wifi-host-driver/WHD/COMPONENT_WIFI6/resources).
 - After the transmission is complete, msh will output the following log.
 ```
 Download whd_firmware to flash success. file size: 419799
 ```
 - After downloading the firmware and clm resource files, reset and restart.
+- If you selected the filesystem option instead of FAL, copy the same firmware/CLM/NVRAM trio into the paths configured under "WHD Resources Configuration" (for example mount the SD card on your PC and drag the files into `/whd/`). Once the filesystem is mounted in RT-Thread—and `whd_wait_fs_mount()` confirms it is ready—WHD will consume the blobs directly without going through `whd_res_download`.
 
 #### Resource file verification function (Recommended)
 - In the package, select `TinyCrypt: A tiny and configurable crypt library`
@@ -118,6 +170,8 @@ RT-Thread online packages  --->                                   # Online softw
 | CYW43012  |   o    |   x   |   x   |
 | CYW43439  |   o    |   x   |   x   |
 | CYW43022  |   *    |   x   |   x   |
+| CYW55500  |   o    |   x   |   x   |
+| CYW55572  |   *    |   x   |   x   |
 
 'x' indicates no support<br>
 'o' indicates tested and supported<br>

@@ -31,38 +31,41 @@
 
 #include "rtthread.h"
 
-#ifdef WHD_RESOURCES_IN_EXTERNAL_STORAGE
-
 #include "wiced_resource.h"
 #include "whd_resource_api.h"
-#include "wifi_nvram_image.h"
 
 #define DBG_TAG           "whd.resources"
 #define DBG_LVL           DBG_INFO
 #include "rtdbg.h"
 
-/* nvram uses local resources, clm and firmware use external resources */
-#if defined(WHD_DYNAMIC_NVRAM)
-#define NVRAM_SIZE             dynamic_nvram_size
-#define NVRAM_IMAGE_VARIABLE   dynamic_nvram_image
-#else
-#define NVRAM_SIZE             sizeof(wifi_nvram_image)
-#define NVRAM_IMAGE_VARIABLE   wifi_nvram_image
-#endif
 
 static const char *name_list[] =
 {
 #ifdef WHD_RESOURCES_IN_EXTERNAL_STORAGE_FAL
     [WHD_RESOURCE_WLAN_FIRMWARE] = WHD_RESOURCES_FIRMWARE_PART_NAME,
-    [WHD_RESOURCE_WLAN_CLM] = WHD_RESOURCES_CLM_PART_NAME
+    [WHD_RESOURCE_WLAN_CLM] = WHD_RESOURCES_CLM_PART_NAME,
+    [WHD_RESOURCE_WLAN_NVRAM] = WHD_RESOURCES_NVRAM_PART_NAME
 #endif
 #ifdef WHD_RESOURCES_IN_EXTERNAL_STORAGE_FS
     [WHD_RESOURCE_WLAN_FIRMWARE] = WHD_RESOURCES_FIRMWARE_PATH_NAME,
-    [WHD_RESOURCE_WLAN_CLM] = WHD_RESOURCES_CLM_PATH_NAME
+    [WHD_RESOURCE_WLAN_CLM] = WHD_RESOURCES_CLM_PATH_NAME,
+    [WHD_RESOURCE_WLAN_NVRAM] = WHD_RESOURCES_NVRAM_PATH_NAME
 #endif
 };
 
-unsigned char r_buffer[WHD_RESOURCES_BLOCK_SIZE];
+uint8_t r_buffer[WHD_RESOURCES_BLOCK_SIZE];
+
+static void nvram_convert_line_endings(char *data, uint32_t size)
+{
+    /* convert the newline to null-terminator */
+    for (uint32_t i = 0; i < size; i ++)
+    {
+        if (data[i] == 0x0A)
+        {
+            data[i] = 0x00;
+        }
+    }
+}
 
 #ifdef WHD_RESOURCES_IN_EXTERNAL_STORAGE_FAL
 #include "fal.h"
@@ -72,12 +75,6 @@ static uint32_t host_platform_resource_size (whd_driver_t whd_drv, whd_resource_
     resource_hnd_t resource;
     const struct fal_partition *part;
     const char *part_name = name_list[type];
-
-    if (type == WHD_RESOURCE_WLAN_NVRAM)
-    {
-        *size_out = NVRAM_SIZE;
-        return WHD_SUCCESS;
-    }
 
     if ((part = fal_partition_find(part_name)) == NULL)
     {
@@ -110,7 +107,7 @@ static uint32_t host_get_resource_block_size (whd_driver_t whd_drv, whd_resource
 
 static uint32_t host_get_resource_no_of_blocks (whd_driver_t whd_drv, whd_resource_type_t type, uint32_t *block_count)
 {
-    uint32_t resource_size;
+    uint32_t resource_size = 0;
     uint32_t block_size;
 
     host_platform_resource_size(whd_drv, type, &resource_size);
@@ -143,20 +140,6 @@ static uint32_t host_get_resource_block (whd_driver_t whd_drv, whd_resource_type
         return WHD_BADARG;
     }
 
-    if (type == WHD_RESOURCE_WLAN_NVRAM)
-    {
-        if (NVRAM_SIZE - read_pos > block_size)
-        {
-            *size_out = block_size;
-        }
-        else
-        {
-            *size_out = NVRAM_SIZE - read_pos;
-        }
-        *data = ( (uint8_t *)NVRAM_IMAGE_VARIABLE ) + read_pos;
-        return WHD_SUCCESS;
-    }
-
     if ((part = fal_partition_find(part_name)) == NULL)
     {
         LOG_E("No %s partition found", part_name);
@@ -177,11 +160,17 @@ static uint32_t host_get_resource_block (whd_driver_t whd_drv, whd_resource_type
 
     if (read_pos > resource.size)
     {
+        LOG_E("Read position beyond resource size for partition[%s]", part_name);
         return RESOURCE_OFFSET_TOO_BIG;
     }
 
     *size_out = fal_partition_read(part, read_pos + sizeof(resource_hnd_t), r_buffer, MIN(block_size, resource.size - read_pos));
     *data = (uint8_t *)&r_buffer;
+
+    if (type == WHD_RESOURCE_WLAN_NVRAM)
+    {
+        nvram_convert_line_endings((char *)*data, *size_out);
+    }
 
     return RESOURCE_SUCCESS;
 }
@@ -191,17 +180,6 @@ static uint32_t host_resource_read (whd_driver_t whd_drv, whd_resource_type_t ty
     resource_hnd_t resource;
     const struct fal_partition *part;
     const char *part_name = name_list[type];
-
-    if (type == WHD_RESOURCE_WLAN_NVRAM)
-    {
-        if (size != sizeof(wifi_nvram_image) )
-        {
-            return WHD_BUFFER_SIZE_SET_ERROR;
-        }
-        memcpy( (uint8_t *)buffer, wifi_nvram_image, sizeof(wifi_nvram_image) );
-        *size_out = sizeof(wifi_nvram_image);
-        return WHD_SUCCESS;
-    }
 
     if ((part = fal_partition_find(part_name)) == NULL)
     {
@@ -221,7 +199,12 @@ static uint32_t host_resource_read (whd_driver_t whd_drv, whd_resource_type_t ty
         return RESOURCE_FILE_OPEN_FAIL;
     }
 
-    *size_out = fal_partition_read(part, offset + sizeof(resource_hnd_t), r_buffer, MIN(size, resource.size - offset));
+    *size_out = fal_partition_read(part, offset + sizeof(resource_hnd_t), buffer, MIN(size, resource.size - offset));
+
+    if (type == WHD_RESOURCE_WLAN_NVRAM)
+    {
+        nvram_convert_line_endings((char *)buffer, *size_out);
+    }
 
     return RESOURCE_SUCCESS;
 }
@@ -229,6 +212,7 @@ static uint32_t host_resource_read (whd_driver_t whd_drv, whd_resource_type_t ty
 
 #ifdef WHD_RESOURCES_IN_EXTERNAL_STORAGE_FS
 #include <dfs_file.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -237,12 +221,6 @@ static uint32_t host_platform_resource_size (whd_driver_t whd_drv, whd_resource_
     int fd;
     struct stat stat;
     const char *path_name = name_list[type];
-
-    if (type == WHD_RESOURCE_WLAN_NVRAM)
-    {
-        *size_out = NVRAM_SIZE;
-        return WHD_SUCCESS;
-    }
 
     if ((fd = open(path_name, O_RDONLY)) < 0)
     {
@@ -272,7 +250,7 @@ static uint32_t host_get_resource_block_size (whd_driver_t whd_drv, whd_resource
 
 static uint32_t host_get_resource_no_of_blocks (whd_driver_t whd_drv, whd_resource_type_t type, uint32_t *block_count)
 {
-    uint32_t resource_size;
+    uint32_t resource_size = 0;
     uint32_t block_size;
 
     host_platform_resource_size(whd_drv, type, &resource_size);
@@ -287,7 +265,7 @@ static uint32_t host_get_resource_no_of_blocks (whd_driver_t whd_drv, whd_resour
 static uint32_t host_get_resource_block (whd_driver_t whd_drv, whd_resource_type_t type, uint32_t blockno, const uint8_t **data, uint32_t *size_out)
 {
     int fd;
-    uint32_t resource_size;
+    uint32_t resource_size = 0;
     uint32_t block_size;
     uint32_t block_count;
     uint32_t read_pos;
@@ -302,20 +280,6 @@ static uint32_t host_get_resource_block (whd_driver_t whd_drv, whd_resource_type
     if (blockno >= block_count)
     {
         return WHD_BADARG;
-    }
-
-    if (type == WHD_RESOURCE_WLAN_NVRAM)
-    {
-        if (NVRAM_SIZE - read_pos > block_size)
-        {
-            *size_out = block_size;
-        }
-        else
-        {
-            *size_out = NVRAM_SIZE - read_pos;
-        }
-        *data = ( (uint8_t *)NVRAM_IMAGE_VARIABLE ) + read_pos;
-        return WHD_SUCCESS;
     }
 
     if ((fd = open(path_name, O_RDONLY)) < 0)
@@ -334,6 +298,11 @@ static uint32_t host_get_resource_block (whd_driver_t whd_drv, whd_resource_type
     *size_out = read(fd, r_buffer, MIN(block_size, resource_size - read_pos));
     *data = (uint8_t *)&r_buffer;
 
+    if (type == WHD_RESOURCE_WLAN_NVRAM)
+    {
+        nvram_convert_line_endings((char *)*data, *size_out);
+    }
+
     close(fd);
 
     return RESOURCE_SUCCESS;
@@ -342,21 +311,10 @@ static uint32_t host_get_resource_block (whd_driver_t whd_drv, whd_resource_type
 static uint32_t host_resource_read (whd_driver_t whd_drv, whd_resource_type_t type, uint32_t offset, uint32_t size, uint32_t *size_out, void *buffer)
 {
     int fd;
-    uint32_t resource_size;
+    uint32_t resource_size = 0;
     const char *path_name = name_list[type];
 
     host_platform_resource_size(whd_drv, type, &resource_size);
-
-    if (type == WHD_RESOURCE_WLAN_NVRAM)
-    {
-        if (size != sizeof(wifi_nvram_image) )
-        {
-            return WHD_BUFFER_SIZE_SET_ERROR;
-        }
-        memcpy( (uint8_t *)buffer, wifi_nvram_image, sizeof(wifi_nvram_image) );
-        *size_out = sizeof(wifi_nvram_image);
-        return WHD_SUCCESS;
-    }
 
     if ((fd = open(path_name, O_RDONLY)) < 0)
     {
@@ -364,8 +322,20 @@ static uint32_t host_resource_read (whd_driver_t whd_drv, whd_resource_type_t ty
         return RESOURCE_FILE_OPEN_FAIL;
     }
 
+    if (offset > resource_size)
+    {
+        close(fd);
+        return RESOURCE_OFFSET_TOO_BIG;
+    }
+
     lseek(fd, offset, SEEK_SET);
-    *size_out = read(fd, r_buffer, MIN(size, resource_size - offset));
+    /* read directly into the provided buffer */
+    *size_out = read(fd, buffer, MIN(size, resource_size - offset));
+
+    if (type == WHD_RESOURCE_WLAN_NVRAM)
+    {
+        nvram_convert_line_endings((char *)buffer, *size_out);
+    }
 
     close(fd);
 
@@ -381,5 +351,3 @@ whd_resource_source_t resource_ops =
     .whd_get_resource_block = host_get_resource_block,
     .whd_resource_read = host_resource_read
 };
-
-#endif /* WHD_RESOURCES_IN_EXTERNAL_STORAGE */

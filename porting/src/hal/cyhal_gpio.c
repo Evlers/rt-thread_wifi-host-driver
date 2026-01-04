@@ -79,7 +79,7 @@ static cyhal_gpio_event_callback_info_t _exti_callbacks_info[CYHAL_MAX_EXTI_NUMB
 cy_rslt_t cyhal_gpio_init(cyhal_gpio_t pin, cyhal_gpio_direction_t direction, cyhal_gpio_drive_mode_t drvMode,
                           bool initVal)
 {
-    rt_uint8_t mode;
+    rt_uint8_t mode = PIN_MODE_INPUT;
 
     switch (drvMode)
     {
@@ -293,7 +293,7 @@ void cyhal_gpio_irq_enable(cyhal_gpio_t pin, cyhal_gpio_irq_event_t event, bool 
 
     if (enable)
     {
-        rt_uint8_t mode;
+        rt_uint8_t mode = PIN_IRQ_MODE_FALLING;
         switch(event)
         {
         case CYHAL_GPIO_IRQ_RISE:

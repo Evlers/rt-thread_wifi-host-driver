@@ -33,7 +33,7 @@
 
 #include "rtthread.h"
 
-#if defined(WHD_RESOURCES_IN_EXTERNAL_STORAGE) && defined(RT_USING_RYM)
+#if defined(RT_USING_RYM)
 
 #include "ymodem.h"
 #include "fal.h"
@@ -183,4 +183,4 @@ static void whd_res_download (int argc, char **argv)
 }
 MSH_CMD_EXPORT(whd_res_download, Download wifi-host-driver resource files);
 
-#endif /* defined(WHD_RESOURCES_IN_EXTERNAL_STORAGE) && defined(RT_USING_RYM) */
+#endif /* defined(RT_USING_RYM) */
