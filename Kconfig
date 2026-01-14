@@ -198,6 +198,15 @@ menuconfig RT_USING_WIFI_HOST_DRIVER
                         bool "Number"
                 endchoice
 
+                config CYBSP_USING_OOB_INTR
+                    bool "Using out-of-band interrupt(HOST_WAKE_IRQ)"
+                    default y
+                    help
+                        Enable this option to use the out-of-band interrupt (OOB_INTR) feature for the HOST_WAKE_IRQ pin.
+                        This allows the WiFi host driver to receive interrupt signals from the WiFi module,
+                        facilitating efficient communication and event handling.
+                        When using the SDIO card interrupt, there is no need to enable this option.
+
                 if CYBSP_USING_PIN_NAME
                     config CYBSP_REG_ON_PIN_NAME
                         string "Set the WiFi_REG ON pin name"
@@ -205,6 +214,7 @@ menuconfig RT_USING_WIFI_HOST_DRIVER
 
                     config CYBSP_HOST_WAKE_IRQ_PIN_NAME
                         string "Set the HOST_WAKE_IRQ pin name"
+                        depends on CYBSP_USING_OOB_INTR
                         default "PA.1"
                 endif # CYBSP_USING_PIN_NAME
 
@@ -215,23 +225,26 @@ menuconfig RT_USING_WIFI_HOST_DRIVER
 
                     config CYBSP_HOST_WAKE_IRQ_PIN
                         int "Set the HOST_WAKE_IRQ pin number"
+                        depends on CYBSP_USING_OOB_INTR
                         default -1
                 endif # CYBSP_USING_PIN_NUMBER
 
-                choice
-                    prompt "Select HOST_WAKE_IRQ event type"
-                    default CYBSP_HOST_WAKE_IRQ_EVENT_FALL
+                if CYBSP_USING_OOB_INTR
+                    choice
+                        prompt "Select HOST_WAKE_IRQ event type"
+                        default CYBSP_HOST_WAKE_IRQ_EVENT_FALL
 
-                    config CYBSP_HOST_WAKE_IRQ_EVENT_FALL
-                        bool "falling"
+                        config CYBSP_HOST_WAKE_IRQ_EVENT_FALL
+                            bool "falling"
 
-                    config CYBSP_HOST_WAKE_IRQ_EVENT_RISE
-                        bool "rising"
-                endchoice
+                        config CYBSP_HOST_WAKE_IRQ_EVENT_RISE
+                            bool "rising"
+                    endchoice
 
-                config CYBSP_OOB_INTR_PRIORITY
-                    int "Set the interrput priority for HOST_WAKE_IRQ pin"
-                    default 2
+                    config CYBSP_OOB_INTR_PRIORITY
+                        int "Set the interrput priority for HOST_WAKE_IRQ pin"
+                        default 2
+                endif # CYBSP_USING_OOB_INTR
             endmenu # Pin Configuration
         endmenu # Hardware Configuration
 

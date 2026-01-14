@@ -65,6 +65,10 @@ RT-Thread online packages  --->                         # Online software packag
             (Number) Select the pin name or number  --->
                 (-1) Set the WiFi_REG ON pin number
                 (-1) Set the HOST_WAKE_IRQ pin number
+            (Name) Select the pin name or number  --->
+                ("PA.0") Set the WiFi_REG ON pin name
+                ("PA.1") Set the HOST_WAKE_IRQ pin name
+            [*] Using out-of-band interrupt(HOST_WAKE_IRQ)
             (falling) Select HOST_WAKE_IRQ event type  --->
             (2) Set the interrupt priority for HOST_WAKE_IRQ pin
     --- Porting options
@@ -87,7 +91,7 @@ Recent WHD drops may ship without the regulatory `*.clm_blob` files or the board
 
 When you keep the resource files on a filesystem, copy the matching `*.bin`, `*.clm_blob` and `nvram.txt` into the paths configured above. When you use FAL, make sure the named partitions exist and write the blobs once with the `whd_res_download` command.
 
-The pin configuration menu also allows setting logical pin names (such as "PA.0") instead of numbers when your BSP exposes them, and the HOST_WAKE IRQ trigger can be switched between falling/rising/both edges to fit your module design.
+The pin configuration menu lets you switch between numeric IDs and logical pin names (for example "PA.0"), disable `CYBSP_USING_OOB_INTR` when your design relies on SDIO card interrupts instead of HOST_WAKE, and pick the falling or rising edge plus IRQ priority whenever HOST_WAKE is enabled.
 
 **Note**<br>
 sdio driver needs to support stream transfer. In the bsp of RT-Thread, most chips do not have the function of adapting stream transfer. <br>

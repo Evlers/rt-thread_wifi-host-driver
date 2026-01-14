@@ -66,6 +66,10 @@ RT-Thread online packages  --->                         # 在线软件包
             (Number) Select the pin name or number  --->
                 (-1) Set the WiFi_REG ON pin number
                 (-1) Set the HOST_WAKE_IRQ pin number
+            (Name) Select the pin name or number  --->
+                ("PA.0") Set the WiFi_REG ON pin name
+                ("PA.1") Set the HOST_WAKE_IRQ pin name
+            [*] Using out-of-band interrupt(HOST_WAKE_IRQ)
             (falling) Select HOST_WAKE_IRQ event type  --->
             (2) Set the interrupt priority for HOST_WAKE_IRQ pin
     --- Porting options
@@ -89,7 +93,7 @@ RT-Thread online packages  --->                         # 在线软件包
 
 当选择 `WHD_RESOURCES_IN_EXTERNAL_STORAGE_FS` 时，WHD 会直接从文件系统（如 SD 卡、SPI Flash 文件系统、U 盘等）读取资源；只需在启动前确保配置的路径（如 `/sdcard/whd/43438A1.bin`、`/sdcard/whd/43438A1.clm_blob`、`/sdcard/whd/nvram.txt`）已经存在即可，无需再为 FAL 分区。请实现或重写 [porting/src/resources/resources.c](porting/src/resources/resources.c) 中的弱符号 `whd_wait_fs_mount()`，或在系统启动顺序中保证文件系统驱动已挂载完成，再启动 WHD。
 
-引脚菜单支持使用逻辑名称（例如 “PA.0”）或数字，同时可配置 HOST_WAKE 的触发沿（下降/上升/双沿）及中断优先级，以匹配模组硬件设计。
+引脚菜单可在数字与逻辑名称（例如 “PA.0”）之间切换，并通过 `CYBSP_USING_OOB_INTR` 决定是否启用 HOST_WAKE（若硬件改用 SDIO 卡中断可关闭该项）；当启用 HOST_WAKE 时，可在下降/上升沿之间选择并配置中断优先级，以匹配模组硬件设计。
 
 **注意**<br>
 SDIO驱动需要支持数据流传输，在RT-Thread的bsp中，大多数芯片都未适配数据流传输的功能。<br>

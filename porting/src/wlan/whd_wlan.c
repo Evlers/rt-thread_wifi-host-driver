@@ -557,6 +557,7 @@ static void whd_init_thread (void *parameter)
     static struct rt_wlan_device wlan_ap, wlan_sta;
     whd_oob_config_t oob_config =
     {
+#ifdef CYBSP_USING_OOB_INTR
 #ifndef CYBSP_USING_PIN_NAME
         .host_oob_pin      = CYBSP_HOST_WAKE_IRQ_PIN,
 #else
@@ -569,6 +570,9 @@ static void whd_init_thread (void *parameter)
         .is_falling_edge   = WHD_FALSE,
 #endif
         .intr_priority     = CYBSP_OOB_INTR_PRIORITY
+#else
+        .host_oob_pin      = CYHAL_NC_PIN_VALUE,
+#endif
     };
     whd_sdio_config_t whd_sdio_config =
     {
