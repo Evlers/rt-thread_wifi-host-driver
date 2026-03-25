@@ -40,9 +40,9 @@
 #include "wiced_resource.h"
 #include "whd_resource_api.h"
 
-#if defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5)
+#if (defined(LPKG_USING_TINYCRYPT) || defined(PKG_USING_TINYCRYPT)) && defined(TINY_CRYPT_MD5)
 #include "tiny_md5.h"
-#endif /* defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5) */
+#endif /* (defined(LPKG_USING_TINYCRYPT) || defined(PKG_USING_TINYCRYPT)) && defined(TINY_CRYPT_MD5) */
 
 static size_t download_file_total_size, download_file_cur_size;
 static const struct fal_partition *download_part = RT_NULL;
@@ -102,7 +102,7 @@ static enum rym_code ymodem_on_data (struct rym_ctx *ctx, rt_uint8_t *buf, rt_si
     return RYM_CODE_ACK;
 }
 
-#if defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5)
+#if (defined(LPKG_USING_TINYCRYPT) || defined(PKG_USING_TINYCRYPT)) && defined(TINY_CRYPT_MD5)
 static void print_md5_checksum (uint32_t addr, uint32_t size)
 {
     uint8_t md5_value[16];
@@ -138,7 +138,7 @@ static void print_md5_checksum (uint32_t addr, uint32_t size)
     rt_free(buf);
     rt_free(ctx);
 }
-#endif /* defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5) */
+#endif /* (defined(LPKG_USING_TINYCRYPT) || defined(PKG_USING_TINYCRYPT)) && defined(TINY_CRYPT_MD5) */
 
 static void whd_res_download (int argc, char **argv)
 {
@@ -184,9 +184,9 @@ static void whd_res_download (int argc, char **argv)
             }
 
             rt_kprintf("\nDownload %s to flash success. file size: %u\n", download_part->name, download_file_total_size);
-#if defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5)
+#if (defined(LPKG_USING_TINYCRYPT) || defined(PKG_USING_TINYCRYPT)) && defined(TINY_CRYPT_MD5)
             print_md5_checksum(sizeof(resource_hnd_t), file_head.size);
-#endif /* defined(PKG_USING_TINYCRYPT) && defined(TINY_CRYPT_MD5) */
+#endif /* (defined(LPKG_USING_TINYCRYPT) || defined(PKG_USING_TINYCRYPT)) && defined(TINY_CRYPT_MD5) */
         }
         else
         {
