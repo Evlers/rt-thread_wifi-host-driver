@@ -39,15 +39,17 @@
 #define CYHAL_MAX_EXTI_NUMBER       (16U)
 
 /* Return pin number by counts the number of leading zeros of a data value.
- * NOTE: __CLZ  returns  32 if no bits are set in the source register, and zero
+ * NOTE: __CLZ returns 32 if no bits are set in the source register, and zero
  * if bit 31 is set. Parameter 'pin' should be in range GPIO_PIN0..GPIO_PIN15. */
-#if defined(__ARMCC_VERSION)
+#if defined(__ARMCC_VERSION) && (__ARMCC_VERSION < 6000000)
 #define CYHAL_GET_PIN_NUMBER(pin)   (uint32_t)(31u - __clz(pin))
-#elif defined(__GNUC__)
+#elif defined(__ARMCC_VERSION) || defined(__clang__) || defined(__GNUC__)
 #define CYHAL_GET_PIN_NUMBER(pin)   (uint32_t)(31u - __builtin_clz(pin))
 #elif defined(__ICCARM__)
 #include <intrinsics.h>
 #define CYHAL_GET_PIN_NUMBER(pin)   (uint32_t)(31u - __CLZ(pin))
+#else
+#error "Unsupported compiler for CYHAL_GET_PIN_NUMBER"
 #endif
 
 typedef struct
